@@ -956,24 +956,30 @@ function renderAIResponse(text) {
     flushBuffer();
 }
 
-var GEMINI_KEY = 'AIzaSyB85u5nmGE4n8bLoBlNWdk_LuBpnyA_6G4';
+var GROQ_KEY = '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';
 
 function callGeminiAPI(prompt, systemPrompt) {
-    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + GEMINI_KEY;
-    return fetch(url, {
+    return fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + GROQ_KEY
+        },
         body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 1024, temperature: 0.7 }
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user',   content: prompt }
+            ],
+            max_tokens: 1024,
+            temperature: 0.7
         })
     }).then(function(r) { return r.json(); }).then(function(d) {
-        if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts[0]) {
-            return d.candidates[0].content.parts[0].text;
+        if (d.choices && d.choices[0] && d.choices[0].message) {
+            return d.choices[0].message.content;
         }
         if (d.error) throw new Error(d.error.message);
-        throw new Error('Sin respuesta de Gemini');
+        throw new Error('Sin respuesta de Groq');
     });
 }
 
