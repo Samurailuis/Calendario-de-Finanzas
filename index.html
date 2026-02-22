@@ -99,6 +99,144 @@
             display: flex; align-items: center; justify-content: center;
             border: 2px solid #020617; line-height: 1;
         }
+
+        /* ── LOGIN PREMIUM ── */
+        #login-screen {
+            background: linear-gradient(135deg, #0a0a1a 0%, #0f0a2e 30%, #1a0a3e 60%, #0a0a1a 100%);
+        }
+        .login-blob {
+            position: absolute; border-radius: 50%; filter: blur(90px);
+            opacity: 0.3; pointer-events: none;
+            animation: blobFloat 9s ease-in-out infinite;
+        }
+        @keyframes blobFloat {
+            0%,100% { transform: translateY(0) scale(1); }
+            50%      { transform: translateY(-28px) scale(1.06); }
+        }
+        .login-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(28px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 2.2rem;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset;
+        }
+        .login-input {
+            width: 100%;
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 1rem;
+            padding: 0.95rem 1.1rem 0.95rem 2.8rem;
+            color: white !important;
+            font-size: 0.875rem;
+            font-weight: 600;
+            outline: none !important;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+        .login-input:focus {
+            border-color: rgba(99,102,241,0.6) !important;
+            background: rgba(99,102,241,0.08) !important;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+        }
+        .login-input::placeholder { color: rgba(255,255,255,0.2) !important; font-weight: 500; }
+        .login-btn-primary {
+            width: 100%; padding: 0.9rem;
+            background: #4f46e5;
+            color: white; font-weight: 900; font-size: 0.875rem;
+            border: none; border-radius: 1rem; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 0.04em;
+            box-shadow: 0 8px 24px rgba(79,70,229,0.35);
+        }
+        .login-btn-primary:hover { background: #4338ca; transform: translateY(-1px); box-shadow: 0 12px 28px rgba(79,70,229,0.45); }
+        .login-btn-primary:active { transform: scale(0.97); }
+        .login-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .login-btn-secondary {
+            width: 100%; padding: 0.9rem;
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.7); font-weight: 900; font-size: 0.875rem;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 0.04em;
+        }
+        .login-btn-secondary:hover { background: rgba(255,255,255,0.1); color: white; }
+        .login-btn-secondary:active { transform: scale(0.97); }
+        .login-btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .login-label {
+            display: block; font-size: 0.65rem; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 0.12em;
+            color: rgba(255,255,255,0.3); margin-bottom: 0.45rem; margin-left: 0.25rem;
+        }
+        .login-mode-panel { display: none; }
+        .login-mode-panel.active { display: block; }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(36px); } to { opacity:1; transform:translateY(0); } }
+        .eye-btn {
+            position: absolute; right: 0.9rem; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: rgba(255,255,255,0.3); padding: 4px; line-height: 0;
+            transition: color 0.2s;
+        }
+        .eye-btn:hover { color: rgba(255,255,255,0.7); }
+        /* ── UPLOAD FACTURA ── */
+        .upload-zone {
+            border: 2px dashed rgba(168,85,247,0.25);
+            border-radius: 1.2rem;
+            background: rgba(168,85,247,0.04);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: rgba(168,85,247,0.6);
+            background: rgba(168,85,247,0.1);
+        }
+        .upload-zone.has-file {
+            border-color: rgba(168,85,247,0.5);
+            background: rgba(168,85,247,0.08);
+        }
+        .invoice-preview {
+            max-height: 120px;
+            border-radius: 0.75rem;
+            object-fit: cover;
+            width: 100%;
+        }
+        .extract-card {
+            background: rgba(16,185,129,0.07);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 1rem;
+            animation: fadeIn 0.4s ease-out both;
+        }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .attach-btn {
+            background: rgba(168,85,247,0.12);
+            border: 1px solid rgba(168,85,247,0.25);
+            color: #c084fc;
+            border-radius: 0.75rem;
+            width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+        }
+        .attach-btn:hover {
+            background: rgba(168,85,247,0.25);
+            border-color: rgba(168,85,247,0.5);
+        }
+        .attach-btn.has-file {
+            background: rgba(168,85,247,0.3);
+            border-color: #a855f7;
+            color: white;
+        }
+        .file-chip {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3);
+            border-radius: 0.6rem; padding: 4px 8px;
+            font-size: 10px; font-weight: 700; color: #c084fc;
+            max-width: 140px;
+        }
+        .file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .file-chip button { background:none; border:none; cursor:pointer; color:#c084fc; padding:0; line-height:0; flex-shrink:0; }
+        .invoice-section {
+            border-top: 1px solid rgba(168,85,247,0.15);
+            padding: 0.75rem 1rem 0.5rem;
+            background: rgba(168,85,247,0.03);
+        }
     </style>
 </head>
 <body class="min-h-screen font-sans bg-slate-950 text-slate-200">
@@ -106,33 +244,89 @@
 <div id="toast"></div>
 
 <div id="app-root">
-    <!-- Login Screen -->
-    <div id="login-screen" class="fixed inset-0 z-[200] bg-slate-950 flex items-center justify-center p-4">
-        <div class="glass w-full max-w-md p-10 rounded-[3rem] shadow-2xl border-blue-500/20 text-center space-y-8 fade-in">
-            <div class="space-y-2">
-                <div class="w-20 h-20 bg-blue-600 rounded-3xl mx-auto flex items-center justify-center shadow-2xl rotate-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
-                </div>
-                <h2 class="text-3xl font-black tracking-tighter mt-4 uppercase italic">Finance <span class="text-blue-500">Master</span></h2>
-                <p id="login-instruction" class="text-slate-500 text-xs font-bold uppercase tracking-widest">Panel de Control Financiero</p>
-            </div>
+    <!-- Login Screen PREMIUM -->
+    <div id="login-screen" class="fixed inset-0 z-[200] flex items-center justify-center p-4 overflow-hidden">
 
-            <div class="space-y-4">
-                <div class="text-left">
-                    <label class="text-[10px] font-black text-slate-500 uppercase ml-4 mb-1 block">Usuario</label>
-                    <input type="text" id="login-user" placeholder="Nombre de usuario" class="w-full p-4 bg-slate-800 rounded-2xl font-bold border border-slate-700 focus:border-blue-500 transition-colors placeholder-slate-600" onkeydown="if(event.key==='Enter') handleAccess('login')">
+        <!-- Animated background blobs -->
+        <div class="login-blob" style="width:500px;height:500px;background:#3730a3;top:-100px;left:-150px;animation-delay:0s;"></div>
+        <div class="login-blob" style="width:400px;height:400px;background:#5b21b6;bottom:-80px;right:-100px;animation-delay:3.5s;"></div>
+        <div class="login-blob" style="width:300px;height:300px;background:#1e1b4b;top:40%;left:55%;animation-delay:1.8s;"></div>
+        <div class="login-blob" style="width:200px;height:200px;background:#4c1d95;top:20%;right:20%;animation-delay:5s;"></div>
+
+        <!-- Card -->
+        <div class="login-card w-full max-w-sm relative z-10 slide-up">
+            <div style="padding:2.5rem 2.2rem;">
+
+                <!-- Brand -->
+                <div style="text-align:center;margin-bottom:2rem;">
+                    <div style="display:inline-flex;align-items:center;justify-content:center;width:68px;height:68px;background:#4f46e5;border-radius:1.4rem;box-shadow:0 12px 32px rgba(79,70,229,0.45);margin-bottom:1.1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+                        </svg>
+                    </div>
+                    <h1 style="font-size:1.75rem;font-weight:900;color:white;letter-spacing:-0.04em;line-height:1;margin:0;">
+                        Finance<span style="color:#818cf8;">Master</span>
+                    </h1>
+                    <p style="font-size:0.65rem;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.15em;margin-top:0.4rem;">
+                        Panel de Control Financiero
+                    </p>
                 </div>
-                <div class="text-left">
-                    <label class="text-[10px] font-black text-slate-500 uppercase ml-4 mb-1 block">Contraseña</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full p-4 bg-slate-800 rounded-2xl font-bold border border-slate-700 focus:border-blue-500 transition-colors placeholder-slate-600" onkeydown="if(event.key==='Enter') handleAccess('login')">
+
+                <!-- Mode toggle tabs -->
+                <div style="display:flex;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:1rem;padding:4px;margin-bottom:1.8rem;gap:4px;">
+                    <button id="tab-login" onclick="switchLoginMode('login')"
+                        style="flex:1;padding:0.6rem;font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;border:none;border-radius:0.75rem;cursor:pointer;transition:all 0.2s;background:#4f46e5;color:white;box-shadow:0 4px 12px rgba(79,70,229,0.3);">
+                        Iniciar Sesión
+                    </button>
+                    <button id="tab-create" onclick="switchLoginMode('create')"
+                        style="flex:1;padding:0.6rem;font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;border:none;border-radius:0.75rem;cursor:pointer;transition:all 0.2s;background:transparent;color:rgba(255,255,255,0.35);">
+                        Crear Perfil
+                    </button>
                 </div>
-                
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button onclick="handleAccess('login')" id="login-btn" class="py-4 bg-slate-800 hover:bg-slate-700 text-white font-black rounded-2xl transition-all active:scale-95 border border-slate-700">ENTRAR</button>
-                    <button onclick="handleAccess('create')" id="create-btn" class="py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl shadow-xl active:scale-95 transition-all">CREAR PERFIL</button>
+
+                <!-- Shared fields -->
+                <div style="margin-bottom:1rem;">
+                    <label class="login-label">Usuario</label>
+                    <div style="position:relative;">
+                        <svg style="position:absolute;left:0.85rem;top:50%;transform:translateY(-50%);pointer-events:none;color:rgba(255,255,255,0.25);" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" id="login-user" class="login-input" placeholder="Tu nombre de usuario"
+                            onkeydown="if(event.key==='Enter') handleAccess(currentLoginMode)">
+                    </div>
                 </div>
+
+                <div style="margin-bottom:1.6rem;">
+                    <label class="login-label">Contraseña</label>
+                    <div style="position:relative;">
+                        <svg style="position:absolute;left:0.85rem;top:50%;transform:translateY(-50%);pointer-events:none;color:rgba(255,255,255,0.25);" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <input type="password" id="login-pass" class="login-input" placeholder="••••••••" style="padding-right:2.8rem;"
+                            onkeydown="if(event.key==='Enter') handleAccess(currentLoginMode)">
+                        <button class="eye-btn" onclick="toggleLoginPassVis(this)" type="button" title="Mostrar/ocultar">
+                            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Login panel -->
+                <div id="panel-login" class="login-mode-panel active">
+                    <button id="login-btn" class="login-btn-primary" onclick="handleAccess('login')">
+                        Entrar al Panel
+                    </button>
+                </div>
+
+                <!-- Create panel -->
+                <div id="panel-create" class="login-mode-panel">
+                    <button id="create-btn" class="login-btn-primary" onclick="handleAccess('create')">
+                        Crear Cuenta
+                    </button>
+                </div>
+
+                <!-- Footer -->
+                <p style="text-align:center;font-size:0.6rem;font-weight:700;color:rgba(255,255,255,0.12);text-transform:uppercase;letter-spacing:0.12em;margin-top:1.6rem;">
+                    Finance Master AI · V9.2
+                </p>
             </div>
-            <p class="text-[9px] text-slate-600 uppercase font-black tracking-widest opacity-50">Versión V9.2 Cloud</p>
         </div>
     </div>
 
@@ -268,9 +462,77 @@
                             </div>
                         </div>
 
-                        <!-- Input de pregunta libre -->
-                        <div class="border-t border-slate-800 px-4 py-3 flex gap-2 flex-shrink-0">
-                            <input id="ai-question" type="text" placeholder="Hazle una pregunta al asesor..."
+                        <!-- Zona de factura adjunta -->
+                        <div id="invoice-zone" class="invoice-section hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[9px] font-black uppercase tracking-widest text-purple-400 flex items-center gap-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    Factura adjunta
+                                </span>
+                                <button onclick="clearInvoiceFile()" class="text-slate-600 hover:text-red-400 text-[10px] font-bold transition-colors">✕ Quitar</button>
+                            </div>
+                            <!-- Preview imagen -->
+                            <div id="invoice-img-wrap" class="hidden mb-2">
+                                <img id="invoice-img-preview" class="invoice-preview" />
+                            </div>
+                            <!-- Preview PDF/texto -->
+                            <div id="invoice-pdf-wrap" class="hidden mb-2">
+                                <div class="flex items-center gap-2 p-2 bg-slate-800 rounded-xl border border-slate-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    <span id="invoice-pdf-name" class="text-xs font-bold text-slate-300 truncate flex-1"></span>
+                                </div>
+                            </div>
+                            <button onclick="analyzeInvoice()"
+                                class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-black rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5 mt-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                Analizar Factura
+                            </button>
+                        </div>
+
+                        <!-- Resultado de extracción -->
+                        <div id="invoice-result" class="hidden invoice-section">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-2 flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                                Datos extraídos
+                            </p>
+                            <div class="extract-card p-3 mb-2 space-y-1.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider w-16 flex-shrink-0">Concepto</span>
+                                    <input id="ext-concept" class="flex-1 text-xs font-bold text-white bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 outline-none focus:border-purple-500" />
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider w-16 flex-shrink-0">Fecha</span>
+                                    <input id="ext-date" type="date" class="flex-1 text-xs font-bold text-white bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 outline-none focus:border-purple-500" />
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider w-16 flex-shrink-0">Monto $</span>
+                                    <input id="ext-amount" type="number" step="0.01" class="flex-1 text-xs font-bold text-emerald-400 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 outline-none focus:border-purple-500" />
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="addInvoiceToTab()"
+                                    class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    Agregar al Dashboard
+                                </button>
+                                <button onclick="clearInvoiceResult()"
+                                    class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-[11px] font-black rounded-xl transition-all active:scale-95 border border-slate-700">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Input de pregunta libre + botón adjuntar -->
+                        <div class="border-t border-slate-800 px-3 py-3 flex gap-2 flex-shrink-0 items-center">
+                            <!-- Hidden file input -->
+                            <input type="file" id="invoice-file-input" accept="image/*,.pdf" class="hidden" onchange="handleInvoiceFile(this)">
+
+                            <!-- Attach button -->
+                            <button id="attach-btn" class="attach-btn" onclick="document.getElementById('invoice-file-input').click()" title="Adjuntar factura o foto">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                            </button>
+
+                            <input id="ai-question" type="text" placeholder="Pregunta al asesor o adjunta una factura…"
                                 class="flex-1 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-xl border border-slate-700 focus:border-purple-500 outline-none placeholder-slate-600 transition-colors"
                                 onkeydown="if(event.key==='Enter') askAI()">
                             <button onclick="askAI()" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-xl text-xs font-black transition-all active:scale-95 flex-shrink-0">
@@ -529,6 +791,40 @@ function showToast(msg, color) {
 
 function escVal(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── LOGIN UI HELPERS ────────────────────────────────────────────────────────
+var currentLoginMode = 'login';
+
+function switchLoginMode(mode) {
+    currentLoginMode = mode;
+    var tabLogin   = document.getElementById('tab-login');
+    var tabCreate  = document.getElementById('tab-create');
+    var panelLogin  = document.getElementById('panel-login');
+    var panelCreate = document.getElementById('panel-create');
+    var active = 'background:#4f46e5;color:white;box-shadow:0 4px 12px rgba(79,70,229,0.3);';
+    var inactive = 'background:transparent;color:rgba(255,255,255,0.35);box-shadow:none;';
+    if (mode === 'login') {
+        tabLogin.style.cssText  += active;
+        tabCreate.style.cssText += inactive;
+        panelLogin.classList.add('active');
+        panelCreate.classList.remove('active');
+    } else {
+        tabCreate.style.cssText += active;
+        tabLogin.style.cssText  += inactive;
+        panelCreate.classList.add('active');
+        panelLogin.classList.remove('active');
+    }
+    document.getElementById('login-user').focus();
+}
+
+function toggleLoginPassVis(btn) {
+    var inp = document.getElementById('login-pass');
+    var showing = inp.type === 'text';
+    inp.type = showing ? 'password' : 'text';
+    btn.innerHTML = showing
+        ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 }
 
 // ─── ACCESO / LOGIN ───────────────────────────────────────────────────────────
@@ -1497,7 +1793,205 @@ function closeNotifDrawer() {
     document.body.style.overflow = '';
 }
 
-// ─── MODAL BACKDROP ───────────────────────────────────────────────────────────
+// ─── FACTURA / INVOICE UPLOAD ────────────────────────────────────────────────
+
+var invoiceFile      = null;   // File object
+var invoiceBase64    = null;   // base64 string (images)
+var invoiceMediaType = null;   // mime type
+var invoiceTextContent = null; // for PDF text fallback
+
+function handleInvoiceFile(input) {
+    var file = input.files[0];
+    if (!file) return;
+    invoiceFile = file;
+
+    var zone    = document.getElementById('invoice-zone');
+    var imgWrap = document.getElementById('invoice-img-wrap');
+    var pdfWrap = document.getElementById('invoice-pdf-wrap');
+    var attachBtn = document.getElementById('attach-btn');
+
+    zone.classList.remove('hidden');
+    clearInvoiceResult();
+
+    attachBtn.classList.add('has-file');
+
+    if (file.type.startsWith('image/')) {
+        // Show image preview + encode base64
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var dataUrl = e.target.result;
+            invoiceBase64 = dataUrl.split(',')[1];
+            invoiceMediaType = file.type;
+            document.getElementById('invoice-img-preview').src = dataUrl;
+            imgWrap.classList.remove('hidden');
+            pdfWrap.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+    } else if (file.type === 'application/pdf') {
+        // PDF: show name, try to extract text via FileReader text mode
+        imgWrap.classList.add('hidden');
+        pdfWrap.classList.remove('hidden');
+        document.getElementById('invoice-pdf-name').textContent = file.name;
+        invoiceBase64    = null;
+        invoiceMediaType = 'application/pdf';
+        // Read raw as data URL for API
+        var reader2 = new FileReader();
+        reader2.onload = function(e) {
+            invoiceBase64 = e.target.result.split(',')[1];
+        };
+        reader2.readAsDataURL(file);
+    }
+
+    // Reset file input so same file can be reloaded
+    input.value = '';
+}
+
+function clearInvoiceFile() {
+    invoiceFile = invoiceBase64 = invoiceMediaType = invoiceTextContent = null;
+    document.getElementById('invoice-zone').classList.add('hidden');
+    document.getElementById('invoice-img-wrap').classList.add('hidden');
+    document.getElementById('invoice-pdf-wrap').classList.add('hidden');
+    document.getElementById('invoice-img-preview').src = '';
+    document.getElementById('attach-btn').classList.remove('has-file');
+    clearInvoiceResult();
+}
+
+function clearInvoiceResult() {
+    document.getElementById('invoice-result').classList.add('hidden');
+    document.getElementById('ext-concept').value = '';
+    document.getElementById('ext-date').value = '';
+    document.getElementById('ext-amount').value = '';
+}
+
+function analyzeInvoice() {
+    if (!invoiceBase64) { showToast('Espera a que termine de cargar el archivo', 'red'); return; }
+
+    setAILoading(true);
+    clearInvoiceResult();
+
+    var systemPrompt = 'Eres un asistente de extracción de datos de facturas y recibos. Tu tarea es analizar la imagen o documento proporcionado y extraer los datos clave. Responde ÚNICAMENTE con un objeto JSON válido con esta estructura exacta, sin texto adicional, sin bloques de código, sin explicaciones:\n{"concepto":"nombre del producto/servicio principal","fecha":"YYYY-MM-DD","monto":0.00}\n\nReglas:\n- concepto: máximo 50 caracteres, descriptivo y conciso\n- fecha: formato ISO YYYY-MM-DD. Si no hay fecha clara, usa la fecha de hoy\n- monto: número decimal, el total a pagar de la factura. Sin símbolo de moneda\n- Si hay múltiples artículos, usa el total general\n- Responde SOLO el JSON, nada más';
+
+    var messages;
+
+    if (invoiceMediaType && invoiceMediaType.startsWith('image/')) {
+        // Use vision model
+        messages = [{
+            role: 'user',
+            content: [
+                {
+                    type: 'image_url',
+                    image_url: { url: 'data:' + invoiceMediaType + ';base64,' + invoiceBase64 }
+                },
+                {
+                    type: 'text',
+                    text: 'Analiza esta factura/recibo y extrae el concepto, fecha y monto total. Responde solo con el JSON indicado.'
+                }
+            ]
+        }];
+    } else {
+        // PDF fallback: tell AI we have a PDF and ask for extraction
+        messages = [{
+            role: 'user',
+            content: 'Tengo una factura en PDF llamada "' + (invoiceFile ? invoiceFile.name : 'factura.pdf') + '". Aunque no puedo enviarte el contenido directamente, necesito que me ayudes a registrar sus datos. Por favor responde con el JSON solicitado usando valores genéricos razonables que luego editaré.'
+        }];
+    }
+
+    var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
+    var fallbackModel = 'llama-3.1-8b-instant';
+
+    var tryModel = function(model, useVision) {
+        var body = {
+            model: model,
+            messages: useVision ? [{role:'system', content: systemPrompt}, messages[0]] : [{role:'system', content: systemPrompt}, {role:'user', content: messages[0].content[1] ? messages[0].content[1].text : messages[0].content}],
+            max_tokens: 256,
+            temperature: 0.1
+        };
+
+        // For vision models use the full multimodal message
+        if (useVision && invoiceMediaType && invoiceMediaType.startsWith('image/')) {
+            body.messages = [{role:'system', content: systemPrompt}, messages[0]];
+        }
+
+        return fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+            body: JSON.stringify(body)
+        }).then(function(r) {
+            if (!r.ok) return r.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + r.status); });
+            return r.json();
+        }).then(function(d) {
+            if (!d.choices || !d.choices[0]) throw new Error('Sin respuesta');
+            return d.choices[0].message.content;
+        });
+    };
+
+    tryModel(visionModel, true)
+        .catch(function() { return tryModel(fallbackModel, false); })
+        .then(function(raw) {
+            // Parse JSON from response
+            var json = raw.trim();
+            // Remove markdown code blocks if present
+            json = json.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
+            var data = JSON.parse(json);
+
+            setAILoading(false);
+
+            // Populate extracted fields
+            document.getElementById('ext-concept').value = data.concepto || '';
+            document.getElementById('ext-amount').value  = parseFloat(data.monto || 0).toFixed(2);
+
+            // Date handling
+            var fecha = data.fecha || '';
+            if (!fecha || fecha === 'YYYY-MM-DD') {
+                var now = new Date();
+                fecha = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+            }
+            document.getElementById('ext-date').value = fecha;
+
+            document.getElementById('invoice-result').classList.remove('hidden');
+
+            // Also show a summary in AI chat
+            renderAIResponse('📄 **Factura analizada:**\n\n• Concepto: ' + (data.concepto||'—') + '\n• Fecha: ' + fecha + '\n• Monto: $' + parseFloat(data.monto||0).toFixed(2) + '\n\nRevisa y edita los datos extraídos si es necesario, luego presiona "Agregar al Dashboard".');
+        })
+        .catch(function(e) {
+            setAILoading(false);
+            // On error, show empty form for manual fill
+            var now = new Date();
+            var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+            document.getElementById('ext-concept').value = invoiceFile ? invoiceFile.name.replace(/\.[^/.]+$/, '') : 'Factura';
+            document.getElementById('ext-date').value    = todayStr;
+            document.getElementById('ext-amount').value  = '0.00';
+            document.getElementById('invoice-result').classList.remove('hidden');
+            renderAIResponse('⚠️ No pude leer el archivo automáticamente (' + (e.message||'') + '). Puedes completar los datos manualmente y agregar al dashboard.');
+        });
+}
+
+function addInvoiceToTab() {
+    if (!activeTab) { showToast('Selecciona una pestaña primero', 'red'); return; }
+
+    var concept = document.getElementById('ext-concept').value.trim();
+    var date    = document.getElementById('ext-date').value;
+    var amount  = parseFloat(document.getElementById('ext-amount').value || 0);
+
+    if (!concept) { showToast('Escribe un concepto', 'red'); return; }
+    if (!date)    { showToast('Selecciona una fecha', 'red'); return; }
+    if (amount <= 0) { showToast('El monto debe ser mayor a 0', 'red'); return; }
+
+    if (!localData.db[activeTab]) localData.db[activeTab] = [];
+    localData.db[activeTab].push({ c: concept, f: date, m: amount, p: false });
+
+    renderTable();
+    renderCalendar();
+    updateCharts();
+    saveCurrentData();
+
+    showToast('✅ Factura agregada a "' + activeTab + '"', 'blue');
+    clearInvoiceFile();
+    clearInvoiceResult();
+}
+
+// ─── FIN INVOICE ─────────────────────────────────────────────────────────────
+
 document.getElementById('edit-profile-modal').addEventListener('click', function(e) {
     if (e.target === this) toggleProfileOptions(false);
 });
