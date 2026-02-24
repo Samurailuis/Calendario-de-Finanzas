@@ -1054,8 +1054,8 @@ function updateCharts() {
 }
 
 // ─── AGENTE IA — API KEY ACTUALIZADA ─────────────────────────────────────────
-// ── URL de tu Cloudflare Worker (reemplaza con la tuya) ──
-var WORKER_URL = 'https://TU-WORKER.TU-USUARIO.workers.dev';
+// ── Tu Google Gemini API Key (consíguela gratis en aistudio.google.com) ──
+var GROQ_KEY = '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';
 
 function buildFinancialSummary() {
     var tabs = localData.db || {};
@@ -1174,10 +1174,12 @@ function renderAIResponse(text) {
 }
 
 function callGroqAPI(prompt, systemPrompt) {
-    // Llama al Cloudflare Worker (proxy seguro) en lugar de Groq directamente
-    return fetch(WORKER_URL, {
+    return fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + GROQ_KEY
+        },
         body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
             messages: [
@@ -1792,6 +1794,9 @@ function analyzeInvoice() {
     var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
     var fallbackModel = 'llama-3.1-8b-instant';
 
+    var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
+    var fallbackModel = 'llama-3.1-8b-instant';
+
     var tryModel = function(model, useVision) {
         var body = {
             model: model,
@@ -1799,14 +1804,12 @@ function analyzeInvoice() {
             max_tokens: 256,
             temperature: 0.1
         };
-
         if (useVision && invoiceMediaType && invoiceMediaType.startsWith('image/')) {
             body.messages = [{role:'system', content: systemPrompt}, messages[0]];
         }
-
-        return fetch(WORKER_URL, {
+        return fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
             body: JSON.stringify(body)
         }).then(function(r) {
             if (!r.ok) return r.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + r.status); });
