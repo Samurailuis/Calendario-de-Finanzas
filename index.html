@@ -1054,7 +1054,8 @@ function updateCharts() {
 }
 
 // ─── AGENTE IA — API KEY ACTUALIZADA ─────────────────────────────────────────
-var GROQ_KEY = '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';
+// ── URL de tu Cloudflare Worker (reemplaza con la tuya) ──
+var WORKER_URL = 'https://TU-WORKER.TU-USUARIO.workers.dev';
 
 function buildFinancialSummary() {
     var tabs = localData.db || {};
@@ -1173,12 +1174,10 @@ function renderAIResponse(text) {
 }
 
 function callGroqAPI(prompt, systemPrompt) {
-    return fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Llama al Cloudflare Worker (proxy seguro) en lugar de Groq directamente
+    return fetch(WORKER_URL, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + GROQ_KEY
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
             messages: [
@@ -1188,12 +1187,15 @@ function callGroqAPI(prompt, systemPrompt) {
             max_tokens: 1024,
             temperature: 0.7
         })
-    }).then(function(r) { return r.json(); }).then(function(d) {
+    }).then(function(r) {
+        if (!r.ok) return r.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + r.status); });
+        return r.json();
+    }).then(function(d) {
         if (d.choices && d.choices[0] && d.choices[0].message) {
             return d.choices[0].message.content;
         }
         if (d.error) throw new Error(d.error.message);
-        throw new Error('Sin respuesta de Groq');
+        throw new Error('Sin respuesta del asesor IA');
     });
 }
 
@@ -1802,9 +1804,9 @@ function analyzeInvoice() {
             body.messages = [{role:'system', content: systemPrompt}, messages[0]];
         }
 
-        return fetch('https://api.groq.com/openai/v1/chat/completions', {
+        return fetch(WORKER_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         }).then(function(r) {
             if (!r.ok) return r.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + r.status); });
