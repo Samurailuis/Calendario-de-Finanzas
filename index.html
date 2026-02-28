@@ -330,8 +330,7 @@
                             <span id="current-profile-name">...</span>
                             <span>▼</span>
                         </button>
-                        <button onclick="toggleSettingsModal(true)" class="text-purple-400 hover:text-purple-300 text-xs font-bold uppercase ml-4 transition-colors flex items-center gap-1">⚙️ API Key</button>
-                        <button onclick="logout()" class="text-slate-600 hover:text-red-400 text-xs font-bold uppercase ml-2 transition-colors">Cerrar Sesión</button>
+                        <button onclick="logout()" class="text-slate-600 hover:text-red-400 text-xs font-bold uppercase ml-4 transition-colors">Cerrar Sesión</button>
                     </div>
                 </div>
                 
@@ -345,6 +344,10 @@
                     <button onclick="openNotifDrawer()" class="relative bg-slate-800 border border-slate-700 px-4 py-3 rounded-2xl hover:bg-slate-700 transition-all active:scale-95" title="Pagos pendientes próximos">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                         <span id="notif-bell-badge" class="hidden">0</span>
+                    </button>
+                    <button onclick="openApiSettings()" class="relative bg-slate-800 border border-slate-700 px-4 py-3 rounded-2xl hover:bg-slate-700 transition-all active:scale-95" title="Configurar Groq API Key">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/><path d="m15 5 3 3"/></svg>
+                        <span id="api-status-dot" style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #020617;display:none;box-shadow:0 0 6px #ef4444;"></span>
                     </button>
                 </div>
             </header>
@@ -622,35 +625,64 @@
         </div>
     </div>
 
-    <div id="edit-profile-modal" class="fixed inset-0 z-[250] bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-[2rem] shadow-2xl modal-enter">
-            <div class="p-8 space-y-6 text-center">
-                <h3 class="text-xl font-bold text-white uppercase italic">Editar Perfil</h3>
-                <div class="space-y-4">
-                    <input type="text" id="edit-profile-name" class="w-full p-4 bg-slate-800 rounded-xl font-bold border border-slate-700 text-white outline-none focus:border-blue-500">
-                    <div class="flex gap-2">
-                        <button onclick="toggleProfileOptions(false)" class="flex-1 py-3 text-slate-500 font-bold uppercase text-xs hover:text-white">Cancelar</button>
-                        <button onclick="renameCurrentProfile()" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl active:scale-95 transition-all hover:bg-blue-500">Guardar</button>
-                    </div>
-                    <button onclick="deleteCurrentProfile()" class="w-full py-3 bg-red-600/10 text-red-500 font-bold rounded-xl text-xs hover:bg-red-600 hover:text-white transition-all">ELIMINAR PERFIL</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- ══ PROFILE MODAL ══════════════════════════════════════════════════════ -->
+    <div id="edit-profile-modal" class="fixed inset-0 z-[250] bg-slate-950/90 backdrop-blur-sm hidden flex items-center justify-center p-4" style="overflow-y:auto;">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-[2rem] shadow-2xl modal-enter" style="margin:auto;">
 
-    <div id="settings-modal" class="fixed inset-0 z-[250] bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-[2rem] shadow-2xl modal-enter">
-            <div class="p-8 space-y-6 text-center">
-                <h3 class="text-xl font-bold text-white uppercase italic">Configurar IA</h3>
-                <p class="text-xs text-slate-400">Ingresa tu API Key de Gemini para habilitar el asesor IA local y online de forma segura.</p>
-                <div class="space-y-4">
-                    <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full p-4 bg-slate-800 rounded-xl font-bold border border-slate-700 text-white outline-none focus:border-purple-500">
-                    <div class="flex gap-2">
-                        <button onclick="toggleSettingsModal(false)" class="flex-1 py-3 text-slate-500 font-bold uppercase text-xs hover:text-white transition-all">Cancelar</button>
-                        <button onclick="saveApiKey()" class="flex-1 py-3 bg-purple-600 text-white font-bold rounded-xl active:scale-95 transition-all hover:bg-purple-500">Guardar</button>
-                    </div>
+            <!-- Header -->
+            <div style="padding:1.75rem 2rem 0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:1.25rem;">
+                <div>
+                    <h3 style="color:white;font-size:1.2rem;font-weight:900;margin:0;letter-spacing:-0.03em;">👤 Mi Perfil</h3>
+                    <p id="profile-modal-user-label" style="color:#64748b;font-size:0.7rem;font-weight:700;margin:0.2rem 0 0;text-transform:uppercase;letter-spacing:0.1em;"></p>
+                </div>
+                <button onclick="toggleProfileOptions(false)" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.6rem;color:#94a3b8;cursor:pointer;padding:0.4rem 0.7rem;font-size:1rem;line-height:1;">✕</button>
+            </div>
+
+            <!-- Internal tabs -->
+            <div style="display:flex;gap:0;border-bottom:1px solid #1e293b;padding:0 2rem;">
+                <button onclick="profileTab('info')" id="ptab-info" class="profile-ptab" style="padding:0.85rem 1.25rem;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;border:none;background:none;cursor:pointer;border-bottom:2px solid #3b82f6;color:#60a5fa;margin-bottom:-1px;">Información</button>
+                <button onclick="profileTab('keys')" id="ptab-keys" class="profile-ptab" style="padding:0.85rem 1.25rem;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#475569;margin-bottom:-1px;">🔑 Claves IA</button>
+                <button onclick="profileTab('danger')" id="ptab-danger" class="profile-ptab" style="padding:0.85rem 1.25rem;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#475569;margin-bottom:-1px;">⚠ Peligro</button>
+            </div>
+
+            <!-- TAB: Info -->
+            <div id="ppanel-info" style="padding:1.75rem 2rem;">
+                <label style="display:block;font-size:0.65rem;font-weight:900;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;margin-bottom:0.45rem;">Nombre de usuario</label>
+                <input type="text" id="edit-profile-name" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:0.75rem;padding:0.85rem 1rem;color:white;font-size:0.9rem;font-weight:700;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#334155'" placeholder="Tu nombre">
+                <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+                    <button onclick="toggleProfileOptions(false)" style="flex:1;padding:0.8rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;color:#94a3b8;font-weight:700;font-size:0.8rem;cursor:pointer;">Cancelar</button>
+                    <button onclick="renameCurrentProfile()" style="flex:2;padding:0.8rem;background:#3b82f6;border:none;border-radius:0.75rem;color:white;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:0.04em;">Guardar nombre</button>
                 </div>
             </div>
+
+            <!-- TAB: API Keys -->
+            <div id="ppanel-keys" style="display:none;padding:1.5rem 2rem 2rem;">
+
+                <!-- Active Provider Selector -->
+                <div style="background:#0f172a;border:1px solid #1e293b;border-radius:1rem;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+                    <label style="display:block;font-size:0.65rem;font-weight:900;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;margin-bottom:0.6rem;">Proveedor activo</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;" id="provider-selector-btns"></div>
+                    <p style="font-size:0.65rem;color:#475569;margin:0.6rem 0 0;line-height:1.5;">El asesor IA usará este proveedor. Si falla, intentará con los siguientes que tengan clave configurada.</p>
+                </div>
+
+                <!-- Provider Cards -->
+                <div style="display:flex;flex-direction:column;gap:1rem;" id="provider-cards-wrap"></div>
+
+                <button onclick="saveAllApiKeys()" style="width:100%;margin-top:1.5rem;padding:0.85rem;background:#3b82f6;border:none;border-radius:0.75rem;color:white;font-weight:900;font-size:0.85rem;cursor:pointer;letter-spacing:0.04em;">
+                    💾 Guardar todas las claves
+                </button>
+                <p id="keys-save-msg" style="display:none;text-align:center;font-size:0.72rem;font-weight:700;margin-top:0.75rem;"></p>
+            </div>
+
+            <!-- TAB: Danger zone -->
+            <div id="ppanel-danger" style="display:none;padding:1.75rem 2rem;">
+                <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:1rem;padding:1.25rem;">
+                    <p style="color:#f87171;font-size:0.8rem;font-weight:800;margin:0 0 0.5rem;">Eliminar perfil permanentemente</p>
+                    <p style="color:#64748b;font-size:0.72rem;line-height:1.6;margin:0 0 1rem;">Esta acción borrará todos tus datos, pestañas, metas y claves API guardadas. No se puede deshacer.</p>
+                    <button onclick="deleteCurrentProfile()" style="width:100%;padding:0.8rem;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:0.75rem;color:#f87171;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s;" onmouseover="this.style.background='#dc2626';this.style.color='white'" onmouseout="this.style.background='rgba(239,68,68,0.15)';this.style.color='#f87171'">🗑 ELIMINAR MI PERFIL</button>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -851,6 +883,8 @@ function handleAccess(mode) {
 
 function enterDashboard() {
     document.getElementById('login-screen').classList.add('hidden');
+        loadUserApiKeys(currentUser.id);
+        validateGroqKeyOnLogin();
     document.getElementById('dashboard-content').classList.remove('hidden');
     document.getElementById('current-profile-name').innerText = currentUser.name;
     if (!localData.goals) localData.goals = [];
@@ -1070,25 +1104,323 @@ function updateCharts() {
     pieChart.update();
 }
 
-// ─── AGENTE IA — API KEY DINÁMICA Y GEMINI ─────────────────────────────────
-var GEMINI_KEY = localStorage.getItem('fm_api_key') || '';
+// ─── AGENTE IA — API KEY ACTUALIZADA ─────────────────────────────────────────
+// ── Tu Google Gemini API Key (consíguela gratis en aistudio.google.com) ──
+// ══════════════════════════════════════════════════════════════════════════════
+// MOTOR IA MULTI-PROVEEDOR
+// ══════════════════════════════════════════════════════════════════════════════
 
-function toggleSettingsModal(show) {
-    var modal = document.getElementById('settings-modal');
-    if (show) {
-        document.getElementById('api-key-input').value = GEMINI_KEY;
-        modal.classList.remove('hidden');
-    } else {
-        modal.classList.add('hidden');
+// Clave Groq de respaldo (del desarrollador) — se usa solo si el usuario no configura ninguna
+var GROQ_KEY_DEFAULT = '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';
+var GROQ_KEY = GROQ_KEY_DEFAULT; // alias de compatibilidad, se actualiza al cargar perfil
+
+// Definición de proveedores soportados
+var AI_PROVIDERS = [
+    {
+        id: 'groq',
+        name: 'Groq',
+        logo: '⚡',
+        color: '#f97316',
+        placeholder: 'gsk_...',
+        hint: 'console.groq.com/keys — Gratis, muy rápido',
+        hintUrl: 'https://console.groq.com/keys',
+        endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+        model: 'llama-3.3-70b-versatile',
+        format: 'openai',
+        testModel: 'llama-3.1-8b-instant'
+    },
+    {
+        id: 'openai',
+        name: 'OpenAI',
+        logo: '🤖',
+        color: '#10b981',
+        placeholder: 'sk-...',
+        hint: 'platform.openai.com/api-keys — GPT-4o mini (pago)',
+        hintUrl: 'https://platform.openai.com/api-keys',
+        endpoint: 'https://api.openai.com/v1/chat/completions',
+        model: 'gpt-4o-mini',
+        format: 'openai',
+        testModel: 'gpt-4o-mini'
+    },
+    {
+        id: 'gemini',
+        name: 'Gemini',
+        logo: '✨',
+        color: '#6366f1',
+        placeholder: 'AIza...',
+        hint: 'aistudio.google.com/apikey — Gratis con cuenta Google',
+        hintUrl: 'https://aistudio.google.com/apikey',
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+        model: 'gemini-2.0-flash',
+        format: 'gemini',
+        testModel: 'gemini-2.0-flash'
+    },
+    {
+        id: 'grok',
+        name: 'Grok (xAI)',
+        logo: '𝕏',
+        color: '#ffffff',
+        placeholder: 'xai-...',
+        hint: 'console.x.ai — Grok 3 mini',
+        hintUrl: 'https://console.x.ai',
+        endpoint: 'https://api.x.ai/v1/chat/completions',
+        model: 'grok-3-mini',
+        format: 'openai',
+        testModel: 'grok-3-mini'
+    },
+    {
+        id: 'custom',
+        name: 'Personalizado',
+        logo: '⚙️',
+        color: '#94a3b8',
+        placeholder: 'Tu API Key...',
+        hint: 'Cualquier API compatible con OpenAI',
+        hintUrl: null,
+        endpoint: '',
+        model: '',
+        format: 'openai',
+        testModel: ''
+    }
+];
+
+// Estado de claves del usuario activo
+var userApiKeys = {
+    active: 'groq',   // proveedor activo
+    groq:   '',
+    openai: '',
+    gemini: '',
+    grok:   '',
+    custom: { key: '', endpoint: '', model: '' }
+};
+
+// ── Cargar claves del usuario desde localStorage ────────────────────────────
+function loadUserApiKeys(userId) {
+    try {
+        var stored = localStorage.getItem('fm_apikeys_' + userId);
+        if (stored) {
+            var parsed = JSON.parse(stored);
+            userApiKeys = Object.assign({ active: 'groq', groq: '', openai: '', gemini: '', grok: '', custom: { key: '', endpoint: '', model: '' } }, parsed);
+        } else {
+            userApiKeys = { active: 'groq', groq: GROQ_KEY_DEFAULT, openai: '', gemini: '', grok: '', custom: { key: '', endpoint: '', model: '' } };
+        }
+        // Actualizar alias de compatibilidad
+        GROQ_KEY = userApiKeys.groq || GROQ_KEY_DEFAULT;
+    } catch(e) {
+        userApiKeys = { active: 'groq', groq: GROQ_KEY_DEFAULT, openai: '', gemini: '', grok: '', custom: { key: '', endpoint: '', model: '' } };
+        GROQ_KEY = GROQ_KEY_DEFAULT;
     }
 }
 
-function saveApiKey() {
-    var newKey = document.getElementById('api-key-input').value.trim();
-    GEMINI_KEY = newKey;
-    localStorage.setItem('fm_api_key', GEMINI_KEY);
-    toggleSettingsModal(false);
-    showToast('API Key guardada con éxito', 'blue');
+// ── Guardar claves del usuario ──────────────────────────────────────────────
+function saveUserApiKeys(userId) {
+    try { localStorage.setItem('fm_apikeys_' + userId, JSON.stringify(userApiKeys)); } catch(e) {}
+}
+
+// ── Llamada unificada IA con fallback automático ────────────────────────────
+function callAI(prompt, systemPrompt) {
+    // Orden de intento: activo primero, luego los demás que tengan clave
+    var order = [userApiKeys.active];
+    AI_PROVIDERS.forEach(function(p) {
+        if (order.indexOf(p.id) === -1) order.push(p.id);
+    });
+
+    function tryNext(idx) {
+        if (idx >= order.length) return Promise.reject(new Error('Sin proveedores IA configurados. Abre tu perfil → Claves IA y agrega una API Key.'));
+        var pid = order[idx];
+        var key = pid === 'custom' ? (userApiKeys.custom && userApiKeys.custom.key) : userApiKeys[pid];
+        if (!key || !key.trim()) return tryNext(idx + 1);
+        return callProvider(pid, key, prompt, systemPrompt)
+            .catch(function(e) {
+                if (e._fatal) return Promise.reject(e);
+                return tryNext(idx + 1);
+            });
+    }
+    return tryNext(0);
+}
+
+// ── Llamada a un proveedor específico ───────────────────────────────────────
+function callProvider(providerId, key, prompt, systemPrompt) {
+    var prov = AI_PROVIDERS.find(function(p) { return p.id === providerId; });
+    if (!prov) return Promise.reject(new Error('Proveedor desconocido: ' + providerId));
+
+    var endpoint = providerId === 'custom' ? (userApiKeys.custom.endpoint || '') : prov.endpoint;
+    var model    = providerId === 'custom' ? (userApiKeys.custom.model || 'gpt-3.5-turbo') : prov.model;
+
+    if (!endpoint) return Promise.reject(new Error('Endpoint no configurado para ' + prov.name));
+
+    if (prov.format === 'gemini') {
+        return callGeminiFormat(endpoint, key, prompt, systemPrompt);
+    }
+    return callOpenAIFormat(endpoint, key, model, prompt, systemPrompt);
+}
+
+function callOpenAIFormat(endpoint, key, model, prompt, systemPrompt) {
+    return fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify({
+            model: model,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user',   content: prompt }
+            ],
+            max_tokens: 1024,
+            temperature: 0.7
+        })
+    }).then(function(r) {
+        if (!r.ok) return r.json().then(function(e) {
+            var msg = e.error ? e.error.message : ('HTTP ' + r.status);
+            if (r.status === 401 || r.status === 403) {
+                var err = new Error('API Key inválida para este proveedor (' + r.status + '). Verifica tu clave en el perfil.');
+                err._fatal = false; // puede fallar y hacer fallback
+                throw err;
+            }
+            if (r.status === 429) throw new Error('Límite de uso alcanzado. Espera un momento.');
+            throw new Error(msg);
+        });
+        return r.json();
+    }).then(function(d) {
+        if (d.choices && d.choices[0] && d.choices[0].message) return d.choices[0].message.content;
+        if (d.error) throw new Error(d.error.message);
+        throw new Error('Respuesta inesperada del proveedor');
+    });
+}
+
+function callGeminiFormat(endpoint, key, prompt, systemPrompt) {
+    var url = endpoint + '?key=' + key;
+    return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 1024, temperature: 0.7 }
+        })
+    }).then(function(r) {
+        if (!r.ok) return r.json().then(function(e) {
+            var msg = (e.error && e.error.message) ? e.error.message : ('HTTP ' + r.status);
+            if (r.status === 400 || r.status === 401 || r.status === 403) {
+                var err = new Error('API Key de Gemini inválida: ' + msg);
+                err._fatal = false;
+                throw err;
+            }
+            throw new Error(msg);
+        });
+        return r.json();
+    }).then(function(d) {
+        if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) {
+            return d.candidates[0].content.parts[0].text;
+        }
+        throw new Error('Respuesta inesperada de Gemini');
+    });
+}
+
+// ── Alias de compatibilidad ─────────────────────────────────────────────────
+function callGroqAPI(prompt, systemPrompt) { return callAI(prompt, systemPrompt); }
+var callGeminiAPI = callGroqAPI;
+
+// ── Test de un proveedor específico ─────────────────────────────────────────
+function testProvider(providerId, key) {
+    var prov = AI_PROVIDERS.find(function(p) { return p.id === providerId; });
+    if (!prov) return Promise.reject(new Error('Proveedor no encontrado'));
+    var endpoint = providerId === 'custom' ? (userApiKeys.custom.endpoint || '') : prov.endpoint;
+    var model    = providerId === 'custom' ? (userApiKeys.custom.model || '') : prov.testModel;
+    if (!endpoint) return Promise.reject(new Error('Configura el endpoint primero'));
+    if (prov.format === 'gemini') {
+        return callGeminiFormat(endpoint, key, 'Di solo: ok', 'Responde con una sola palabra.');
+    }
+    return callOpenAIFormat(endpoint, key, model, 'Di solo: ok', 'Responde con una sola palabra.');
+}
+
+// ── Validar al iniciar sesión ────────────────────────────────────────────────
+function validateGroqKeyOnLogin() {
+    var activeKey = userApiKeys.active === 'custom'
+        ? (userApiKeys.custom && userApiKeys.custom.key)
+        : userApiKeys[userApiKeys.active];
+    if (!activeKey || !activeKey.trim()) { setApiStatusDot(false); return; }
+    callAI('ok', 'Responde ok.')
+        .then(function() { setApiStatusDot(true); })
+        .catch(function() { setApiStatusDot(null); });
+}
+
+function openApiSettings() {
+    // Redirect to profile modal, keys tab
+    toggleProfileOptions(true);
+    setTimeout(function() { profileTab('keys'); }, 50);
+}
+function closeApiSettings() { document.getElementById('api-settings-modal').style.display = 'none'; }
+function toggleApiKeyVis() {
+    var inp = document.getElementById('api-key-input');
+    var ico = document.getElementById('api-eye-icon');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+        inp.type = 'password';
+        ico.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+}
+function setApiStatusDot(ok) {
+    var dot = document.getElementById('api-status-dot');
+    if (!dot) return;
+    dot.style.display = (ok === null) ? 'none' : 'block';
+    if (ok !== null) { dot.style.background = ok ? '#10b981' : '#ef4444'; dot.style.boxShadow = ok ? '0 0 6px #10b981' : '0 0 6px #ef4444'; }
+}
+function updateApiCurrentStatus() {
+    var el = document.getElementById('api-current-status'); if (!el) return;
+    var k = GROQ_KEY || '';
+    if (!k || !k.startsWith('gsk_')) { el.innerHTML = '<span style="color:#ef4444;">⚠ Sin clave Groq válida</span>'; return; }
+    el.innerHTML = '<span style="color:#94a3b8;">Clave activa: <code style="color:#60a5fa;background:#1e293b;padding:1px 6px;border-radius:4px;font-size:0.7rem;">' + k.substring(0,8) + '...' + k.slice(-4) + '</code></span>';
+}
+function testAndSaveApiKey() {
+    var key = document.getElementById('api-key-input').value.trim();
+    var banner = document.getElementById('api-test-banner');
+    var btn = document.getElementById('api-save-btn');
+    function showBanner(msg, type) {
+        banner.style.display = 'block';
+        var colors = { ok: ['rgba(16,185,129,0.12)','rgba(16,185,129,0.3)','#6ee7b7'], err: ['rgba(239,68,68,0.12)','rgba(239,68,68,0.3)','#fca5a5'], warn: ['rgba(245,158,11,0.12)','rgba(245,158,11,0.3)','#fcd34d'] };
+        var c = colors[type];
+        banner.style.background = c[0]; banner.style.border = '1px solid ' + c[1]; banner.style.color = c[2];
+        banner.textContent = msg;
+    }
+    if (!key) { showBanner('⚠ Ingresa una clave antes de guardar.', 'err'); return; }
+    if (!key.startsWith('gsk_')) { showBanner('⚠ Las claves de Groq comienzan con "gsk_". Verifica tu clave en console.groq.com/keys', 'err'); return; }
+    btn.textContent = '⏳ Probando...'; btn.disabled = true;
+    fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: 'ok' }], max_tokens: 3 })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; }); })
+    .then(function(res) {
+        btn.textContent = '✓ Probar y Guardar'; btn.disabled = false;
+        if (res.ok) {
+            GROQ_KEY = key;
+            try { localStorage.setItem('financemaster_groq_key', key); } catch(e) {}
+            showBanner('✅ Clave válida y guardada. El asesor IA está activo.', 'ok');
+            setApiStatusDot(true); updateApiCurrentStatus();
+            setTimeout(closeApiSettings, 1800);
+        } else {
+            var msg = (res.data && res.data.error) ? res.data.error.message : ('HTTP ' + res.status);
+            if (res.status === 401) msg = 'Clave rechazada por Groq. Verifica que sea correcta y esté activa.';
+            if (res.status === 429) msg = 'Límite de peticiones alcanzado. Espera un momento.';
+            showBanner('❌ ' + msg, 'err'); setApiStatusDot(false);
+        }
+    })
+    .catch(function(e) {
+        btn.textContent = '✓ Probar y Guardar'; btn.disabled = false;
+        showBanner('⚠ Error de red: ' + (e.message || 'Sin conexión a internet.'), 'warn');
+    });
+}
+function validateGroqKeyOnLogin() {
+    if (!GROQ_KEY || !GROQ_KEY.startsWith('gsk_')) { setApiStatusDot(false); return; }
+    fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: 'ok' }], max_tokens: 3 })
+    })
+    .then(function(r) { setApiStatusDot(r.ok); })
+    .catch(function() { setApiStatusDot(null); });
 }
 
 function buildFinancialSummary() {
@@ -1207,15 +1539,15 @@ function renderAIResponse(text) {
     flushBuffer();
 }
 
-function callGeminiAPI(prompt, systemPrompt) {
-    return fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+function callGroqAPI(prompt, systemPrompt) {
+    return fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + GEMINI_KEY
+            'Authorization': 'Bearer ' + GROQ_KEY
         },
         body: JSON.stringify({
-            model: 'gemini-1.5-flash',
+            model: 'llama-3.3-70b-versatile',
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user',   content: prompt }
@@ -1224,7 +1556,12 @@ function callGeminiAPI(prompt, systemPrompt) {
             temperature: 0.7
         })
     }).then(function(r) {
-        if (!r.ok) return r.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + r.status); });
+        if (!r.ok) return r.json().then(function(e) {
+            var msg = e.error ? e.error.message : ('HTTP ' + r.status);
+            if (r.status === 401) { setApiStatusDot(false); throw new Error('API Key inválida o expirada. Haz clic en el ícono ✏️ del encabezado para actualizarla.'); }
+            if (r.status === 429) { throw new Error('Límite de uso alcanzado. Espera un momento e intenta de nuevo.'); }
+            throw new Error(msg);
+        });
         return r.json();
     }).then(function(d) {
         if (d.choices && d.choices[0] && d.choices[0].message) {
@@ -1235,23 +1572,20 @@ function callGeminiAPI(prompt, systemPrompt) {
     });
 }
 
+// Alias para compatibilidad con código existente
+var callGeminiAPI = callGroqAPI;
+
 function runAIAnalysis() {
     setAILoading(true);
-
-    if (!GEMINI_KEY) {
-        renderAIResponse('⚠️ **Falta la API Key.**\n\nPor favor, configura tu llave de acceso de Gemini haciendo clic en "⚙️ API Key" (arriba en el menú) para habilitar el asesor.');
-        return;
-    }
-
     var summary = buildFinancialSummary();
     var system = 'Eres un asesor financiero personal. Analizas los datos financieros del usuario y das consejos claros, directos y accionables en español. Sé conciso pero útil. Usa bullets para los consejos. No uses frases genéricas. Basa TODO en los números reales del usuario.';
     var prompt = summary + '\n\nAnaliza esta situación financiera y dame:\n1. Un diagnóstico rápido (2-3 líneas)\n2. Los 3-5 consejos más importantes y accionables para mejorar mi economía\n3. Una alerta sobre el pago más urgente si aplica';
 
-    callGeminiAPI(prompt, system)
+    callGroqAPI(prompt, system)
         .then(function(text) { renderAIResponse(text); })
         .catch(function(e) {
             setAILoading(false);
-            renderAIResponse('No se pudo conectar con el asesor IA. Verifica tu conexión o tu API Key e intenta de nuevo.\n\n' + (e.message || ''));
+            renderAIResponse('No se pudo conectar con el asesor IA. Verifica tu conexión e intenta de nuevo.\n\n' + (e.message || ''));
         });
 }
 
@@ -1260,29 +1594,195 @@ function askAI() {
     if (!q) return;
     document.getElementById('ai-question').value = '';
     setAILoading(true);
-
-    if (!GEMINI_KEY) {
-        renderAIResponse('⚠️ **Falta la API Key.**\n\nPor favor, configura tu llave de acceso haciendo clic en "⚙️ API Key" (arriba) para poder chatear con el asesor.');
-        return;
-    }
-
     var summary = buildFinancialSummary();
     var system = 'Eres un asesor financiero personal. El usuario te hace preguntas sobre sus finanzas. Responde en español, de forma directa y práctica. Basa tus respuestas en los datos reales del usuario.';
     var prompt = 'Mis datos financieros actuales:\n\n' + summary + '\n\nMi pregunta: ' + q;
 
-    callGeminiAPI(prompt, system)
+    callGroqAPI(prompt, system)
         .then(function(text) { renderAIResponse(text); })
         .catch(function(e) {
             setAILoading(false);
-            renderAIResponse('Error al conectar con el asesor IA. Verifica tu API Key e intenta de nuevo.\n\n' + (e.message || ''));
+            renderAIResponse('Error al conectar con el asesor IA. Intenta de nuevo.\n\n' + (e.message || ''));
         });
 }
 
 // ─── PERFIL ───────────────────────────────────────────────────────────────────
+// ── Profile modal tab switching ───────────────────────────────────────────
+function profileTab(id) {
+    ['info','keys','danger'].forEach(function(t) {
+        document.getElementById('ppanel-' + t).style.display = t === id ? 'block' : 'none';
+        var btn = document.getElementById('ptab-' + t);
+        if (t === id) {
+            btn.style.borderBottomColor = '#3b82f6';
+            btn.style.color = '#60a5fa';
+        } else {
+            btn.style.borderBottomColor = 'transparent';
+            btn.style.color = '#475569';
+        }
+    });
+    if (id === 'keys') renderProviderCards();
+}
+
 function toggleProfileOptions(show) {
     var modal = document.getElementById('edit-profile-modal');
-    if (show) { document.getElementById('edit-profile-name').value = currentUser.name; modal.classList.remove('hidden'); }
-    else { modal.classList.add('hidden'); }
+    if (show) {
+        document.getElementById('edit-profile-name').value = currentUser.name;
+        document.getElementById('profile-modal-user-label').textContent = '@' + currentUser.id;
+        modal.classList.remove('hidden');
+        profileTab('info');
+    } else {
+        modal.classList.add('hidden');
+    }
+}
+
+// ── Render provider cards in Keys tab ─────────────────────────────────────
+function renderProviderCards() {
+    // Selector buttons
+    var selWrap = document.getElementById('provider-selector-btns');
+    selWrap.innerHTML = '';
+    AI_PROVIDERS.forEach(function(p) {
+        var isActive = userApiKeys.active === p.id;
+        var hasKey   = p.id === 'custom'
+            ? !!(userApiKeys.custom && userApiKeys.custom.key)
+            : !!userApiKeys[p.id];
+        var btn = document.createElement('button');
+        btn.id = 'provsel-' + p.id;
+        btn.textContent = p.logo + ' ' + p.name;
+        btn.style.cssText = 'padding:0.4rem 0.9rem;border-radius:2rem;font-size:0.72rem;font-weight:800;cursor:pointer;transition:all 0.2s;border:2px solid ' +
+            (isActive ? p.color : (hasKey ? 'rgba(255,255,255,0.15)' : '#1e293b')) + ';' +
+            'background:' + (isActive ? p.color + '22' : 'transparent') + ';' +
+            'color:' + (isActive ? p.color : (hasKey ? '#94a3b8' : '#334155')) + ';';
+        btn.onclick = function() {
+            userApiKeys.active = p.id;
+            renderProviderCards();
+        };
+        selWrap.appendChild(btn);
+    });
+
+    // Provider cards
+    var wrap = document.getElementById('provider-cards-wrap');
+    wrap.innerHTML = '';
+    AI_PROVIDERS.forEach(function(p) {
+        var isCustom = p.id === 'custom';
+        var currentKey = isCustom ? (userApiKeys.custom ? userApiKeys.custom.key : '') : (userApiKeys[p.id] || '');
+        var isActive = userApiKeys.active === p.id;
+
+        var card = document.createElement('div');
+        card.style.cssText = 'background:#0f172a;border:1px solid ' + (isActive ? p.color + '44' : '#1e293b') + ';border-radius:1rem;padding:1rem 1.25rem;transition:border-color 0.2s;';
+
+        var customFields = isCustom ? ('<div style="display:flex;gap:0.5rem;margin-top:0.5rem;">' +
+            '<input id="prov-custom-endpoint" type="text" placeholder="https://tu-endpoint/v1/chat/completions" ' +
+            'value="' + ((userApiKeys.custom && userApiKeys.custom.endpoint) || '') + '" ' +
+            'style="flex:2;background:#1e293b;border:1px solid #334155;border-radius:0.5rem;padding:0.6rem 0.75rem;color:white;font-size:0.72rem;outline:none;box-sizing:border-box;" ' +
+            'onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'">' +
+            '<input id="prov-custom-model" type="text" placeholder="gpt-3.5-turbo" ' +
+            'value="' + ((userApiKeys.custom && userApiKeys.custom.model) || '') + '" ' +
+            'style="flex:1;background:#1e293b;border:1px solid #334155;border-radius:0.5rem;padding:0.6rem 0.75rem;color:white;font-size:0.72rem;outline:none;box-sizing:border-box;" ' +
+            'onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'">' +
+            '</div>') : '';
+
+        card.innerHTML =
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">' +
+                '<div style="display:flex;align-items:center;gap:0.6rem;">' +
+                    '<span style="font-size:1.1rem;">' + p.logo + '</span>' +
+                    '<div>' +
+                        '<p style="color:white;font-size:0.8rem;font-weight:800;margin:0;">' + p.name + (isActive ? ' <span style="font-size:0.6rem;background:' + p.color + '33;color:' + p.color + ';padding:1px 6px;border-radius:99px;vertical-align:middle;">ACTIVO</span>' : '') + '</p>' +
+                        '<a href="' + (p.hintUrl || '#') + '" target="_blank" style="color:#475569;font-size:0.62rem;text-decoration:none;" onmouseover="this.style.color=\'#60a5fa\'" onmouseout="this.style.color=\'#475569\'">' + p.hint + '</a>' +
+                    '</div>' +
+                '</div>' +
+                '<span id="prov-status-' + p.id + '" style="font-size:0.65rem;font-weight:700;"></span>' +
+            '</div>' +
+            '<div style="display:flex;gap:0.5rem;align-items:center;">' +
+                '<div style="position:relative;flex:1;">' +
+                    '<input id="prov-key-' + p.id + '" type="password" placeholder="' + p.placeholder + '" value="' + currentKey + '" ' +
+                    'style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:0.6rem;padding:0.65rem 2.4rem 0.65rem 0.85rem;color:white;font-size:0.8rem;font-family:monospace;outline:none;box-sizing:border-box;" ' +
+                    'onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'">' +
+                    '<button onclick="toggleProvKeyVis(\'' + p.id + '\')" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#475569;padding:2px;line-height:0;" title="Ver/ocultar">' +
+                        '<svg id="prov-eye-' + p.id + '" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
+                    '</button>' +
+                '</div>' +
+                '<button onclick="testSingleProvider(\'' + p.id + '\')" style="padding:0.65rem 0.9rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:0.6rem;color:#94a3b8;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap;" id="prov-test-btn-' + p.id + '">Probar</button>' +
+            '</div>' +
+            customFields;
+
+        wrap.appendChild(card);
+    });
+}
+
+function toggleProvKeyVis(pid) {
+    var inp = document.getElementById('prov-key-' + pid);
+    var ico = document.getElementById('prov-eye-' + pid);
+    if (!inp) return;
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+        inp.type = 'password';
+        ico.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+}
+
+function testSingleProvider(pid) {
+    var keyInp = document.getElementById('prov-key-' + pid);
+    if (!keyInp) return;
+    var key = keyInp.value.trim();
+    var statusEl = document.getElementById('prov-status-' + pid);
+    var btn = document.getElementById('prov-test-btn-' + pid);
+
+    if (pid === 'custom') {
+        var ep = (document.getElementById('prov-custom-endpoint') || {}).value || '';
+        var mo = (document.getElementById('prov-custom-model') || {}).value || '';
+        if (!ep) { statusEl.innerHTML = '<span style="color:#fca5a5;">⚠ Falta endpoint</span>'; return; }
+    }
+
+    if (!key) { statusEl.innerHTML = '<span style="color:#fca5a5;">⚠ Sin clave</span>'; return; }
+
+    var tempKeys = JSON.parse(JSON.stringify(userApiKeys));
+    if (pid === 'custom') {
+        tempKeys.custom = { key: key, endpoint: (document.getElementById('prov-custom-endpoint') || {}).value || '', model: (document.getElementById('prov-custom-model') || {}).value || '' };
+    } else {
+        tempKeys[pid] = key;
+    }
+
+    statusEl.innerHTML = '<span style="color:#94a3b8;">⏳ Probando...</span>';
+    btn.disabled = true;
+
+    testProvider(pid, key)
+        .then(function() {
+            statusEl.innerHTML = '<span style="color:#6ee7b7;">✅ Válida</span>';
+        })
+        .catch(function(e) {
+            statusEl.innerHTML = '<span style="color:#fca5a5;" title="' + (e.message||'') + '">❌ Inválida</span>';
+        })
+        .finally(function() { btn.disabled = false; });
+}
+
+function saveAllApiKeys() {
+    // Recoger todas las claves del formulario
+    AI_PROVIDERS.forEach(function(p) {
+        var inp = document.getElementById('prov-key-' + p.id);
+        if (!inp) return;
+        var val = inp.value.trim();
+        if (p.id === 'custom') {
+            var ep = (document.getElementById('prov-custom-endpoint') || {}).value || '';
+            var mo = (document.getElementById('prov-custom-model') || {}).value || '';
+            userApiKeys.custom = { key: val, endpoint: ep, model: mo };
+        } else {
+            userApiKeys[p.id] = val;
+        }
+    });
+    // Actualizar alias de compatibilidad
+    GROQ_KEY = userApiKeys.groq || GROQ_KEY_DEFAULT;
+    // Guardar
+    if (currentUser) saveUserApiKeys(currentUser.id);
+    // Feedback
+    var msg = document.getElementById('keys-save-msg');
+    msg.style.display = 'block';
+    msg.style.color = '#6ee7b7';
+    msg.textContent = '✅ Claves guardadas correctamente. Proveedor activo: ' + (AI_PROVIDERS.find(function(p) { return p.id === userApiKeys.active; }) || {name: userApiKeys.active}).name;
+    setTimeout(function() { msg.style.display = 'none'; }, 3000);
+    setApiStatusDot(true);
+    renderProviderCards();
 }
 
 function renameCurrentProfile() {
@@ -1805,12 +2305,6 @@ function clearInvoiceResult() {
 
 function analyzeInvoice() {
     if (!invoiceBase64) { showToast('Espera a que termine de cargar el archivo', 'red'); return; }
-    
-    if (!GEMINI_KEY) {
-        showToast('Falta la API Key', 'red');
-        renderAIResponse('⚠️ **Falta la API Key.**\n\nPor favor, configura tu llave de acceso haciendo clic en "⚙️ API Key" (arriba en el menú principal) para poder analizar documentos.');
-        return;
-    }
 
     setAILoading(true);
     clearInvoiceResult();
@@ -1840,8 +2334,11 @@ function analyzeInvoice() {
         }];
     }
 
-    var visionModel   = 'gemini-1.5-flash';
-    var fallbackModel = 'gemini-1.5-flash';
+    var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
+    var fallbackModel = 'llama-3.1-8b-instant';
+
+    var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
+    var fallbackModel = 'llama-3.1-8b-instant';
 
     var tryModel = function(model, useVision) {
         var body = {
@@ -1853,12 +2350,29 @@ function analyzeInvoice() {
         if (useVision && invoiceMediaType && invoiceMediaType.startsWith('image/')) {
             body.messages = [{role:'system', content: systemPrompt}, messages[0]];
         }
-        return fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+        // Use active provider endpoint and key
+        var activeProv = AI_PROVIDERS.find(function(p) { return p.id === userApiKeys.active; }) || AI_PROVIDERS[0];
+        var activeKey  = userApiKeys.active === 'custom' ? (userApiKeys.custom && userApiKeys.custom.key) : userApiKeys[userApiKeys.active];
+        if (!activeKey) activeKey = GROQ_KEY; // fallback to Groq default
+        var activeEndpoint = userApiKeys.active === 'custom' ? (userApiKeys.custom && userApiKeys.custom.endpoint) : activeProv.endpoint;
+        var activeModel    = userApiKeys.active === 'custom' ? (userApiKeys.custom && userApiKeys.custom.model) : activeProv.model;
+        // For vision (image invoices) force Groq since others may not support it the same way
+        var invoiceEndpoint = (body.messages && body.messages[0] && body.messages[0].content && Array.isArray(body.messages[0].content))
+            ? 'https://api.groq.com/openai/v1/chat/completions'
+            : activeEndpoint;
+        var invoiceKey = invoiceEndpoint.indexOf('groq') !== -1 ? (userApiKeys.groq || GROQ_KEY) : activeKey;
+
+        return fetch(invoiceEndpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GEMINI_KEY },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + invoiceKey },
             body: JSON.stringify(body)
         }).then(function(r) {
-            if (!r.ok) return r.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + r.status); });
+            if (!r.ok) return r.json().then(function(e) {
+                var msg = e.error ? e.error.message : ('HTTP ' + r.status);
+                if (r.status === 401) { setApiStatusDot(false); throw new Error('API Key inválida. Abre tu perfil → Claves IA para actualizarla.'); }
+                if (r.status === 429) { throw new Error('Límite alcanzado. Espera un momento.'); }
+                throw new Error(msg);
+            });
             return r.json();
         }).then(function(d) {
             if (!d.choices || !d.choices[0]) throw new Error('Sin respuesta');
@@ -1928,10 +2442,8 @@ function addInvoiceToTab() {
 document.getElementById('edit-profile-modal').addEventListener('click', function(e) {
     if (e.target === this) toggleProfileOptions(false);
 });
-
-document.getElementById('settings-modal').addEventListener('click', function(e) {
-    if (e.target === this) toggleSettingsModal(false);
-});
 </script>
+
+</div>
 </body>
 </html>
