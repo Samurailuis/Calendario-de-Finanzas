@@ -330,7 +330,8 @@
                             <span id="current-profile-name">...</span>
                             <span>▼</span>
                         </button>
-                        <button onclick="logout()" class="text-slate-600 hover:text-red-400 text-xs font-bold uppercase ml-4 transition-colors">Cerrar Sesión</button>
+                        <button onclick="toggleSettingsModal(true)" class="text-purple-400 hover:text-purple-300 text-xs font-bold uppercase ml-4 transition-colors flex items-center gap-1">⚙️ API Key</button>
+                        <button onclick="logout()" class="text-slate-600 hover:text-red-400 text-xs font-bold uppercase ml-2 transition-colors">Cerrar Sesión</button>
                     </div>
                 </div>
                 
@@ -344,10 +345,6 @@
                     <button onclick="openNotifDrawer()" class="relative bg-slate-800 border border-slate-700 px-4 py-3 rounded-2xl hover:bg-slate-700 transition-all active:scale-95" title="Pagos pendientes próximos">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                         <span id="notif-bell-badge" class="hidden">0</span>
-                    </button>
-                    <button onclick="openApiSettings()" class="relative bg-slate-800 border border-slate-700 px-4 py-3 rounded-2xl hover:bg-slate-700 transition-all active:scale-95" title="Configurar Groq API Key">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/><path d="m15 5 3 3"/></svg>
-                        <span id="api-status-dot" style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #020617;display:none;box-shadow:0 0 6px #ef4444;"></span>
                     </button>
                 </div>
             </header>
@@ -640,6 +637,22 @@
             </div>
         </div>
     </div>
+
+    <div id="settings-modal" class="fixed inset-0 z-[250] bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-[2rem] shadow-2xl modal-enter">
+            <div class="p-8 space-y-6 text-center">
+                <h3 class="text-xl font-bold text-white uppercase italic">Configurar IA</h3>
+                <p class="text-xs text-slate-400">Ingresa tu API Key de Gemini para habilitar el asesor IA local y online de forma segura.</p>
+                <div class="space-y-4">
+                    <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full p-4 bg-slate-800 rounded-xl font-bold border border-slate-700 text-white outline-none focus:border-purple-500">
+                    <div class="flex gap-2">
+                        <button onclick="toggleSettingsModal(false)" class="flex-1 py-3 text-slate-500 font-bold uppercase text-xs hover:text-white transition-all">Cancelar</button>
+                        <button onclick="saveApiKey()" class="flex-1 py-3 bg-purple-600 text-white font-bold rounded-xl active:scale-95 transition-all hover:bg-purple-500">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="module">
@@ -838,7 +851,6 @@ function handleAccess(mode) {
 
 function enterDashboard() {
     document.getElementById('login-screen').classList.add('hidden');
-        validateGroqKeyOnLogin();
     document.getElementById('dashboard-content').classList.remove('hidden');
     document.getElementById('current-profile-name').innerText = currentUser.name;
     if (!localData.goals) localData.goals = [];
@@ -1058,94 +1070,25 @@ function updateCharts() {
     pieChart.update();
 }
 
-// ─── AGENTE IA — API KEY ACTUALIZADA ─────────────────────────────────────────
-// ── Tu Google Gemini API Key (consíguela gratis en aistudio.google.com) ──
-var GROQ_KEY_DEFAULT = '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';
-var GROQ_KEY = (function() {
-    try { return localStorage.getItem('financemaster_groq_key') || GROQ_KEY_DEFAULT; } catch(e) { return GROQ_KEY_DEFAULT; }
-})();
+// ─── AGENTE IA — API KEY DINÁMICA Y GEMINI ─────────────────────────────────
+var GEMINI_KEY = localStorage.getItem('fm_api_key') || '';
 
-function openApiSettings() {
-    var m = document.getElementById('api-settings-modal');
-    m.style.display = 'flex';
-    document.getElementById('api-key-input').value = GROQ_KEY;
-    document.getElementById('api-key-input').type = 'password';
-    document.getElementById('api-test-banner').style.display = 'none';
-    updateApiCurrentStatus();
-}
-function closeApiSettings() { document.getElementById('api-settings-modal').style.display = 'none'; }
-function toggleApiKeyVis() {
-    var inp = document.getElementById('api-key-input');
-    var ico = document.getElementById('api-eye-icon');
-    if (inp.type === 'password') {
-        inp.type = 'text';
-        ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+function toggleSettingsModal(show) {
+    var modal = document.getElementById('settings-modal');
+    if (show) {
+        document.getElementById('api-key-input').value = GEMINI_KEY;
+        modal.classList.remove('hidden');
     } else {
-        inp.type = 'password';
-        ico.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        modal.classList.add('hidden');
     }
 }
-function setApiStatusDot(ok) {
-    var dot = document.getElementById('api-status-dot');
-    if (!dot) return;
-    dot.style.display = (ok === null) ? 'none' : 'block';
-    if (ok !== null) { dot.style.background = ok ? '#10b981' : '#ef4444'; dot.style.boxShadow = ok ? '0 0 6px #10b981' : '0 0 6px #ef4444'; }
-}
-function updateApiCurrentStatus() {
-    var el = document.getElementById('api-current-status'); if (!el) return;
-    var k = GROQ_KEY || '';
-    if (!k || !k.startsWith('gsk_')) { el.innerHTML = '<span style="color:#ef4444;">⚠ Sin clave Groq válida</span>'; return; }
-    el.innerHTML = '<span style="color:#94a3b8;">Clave activa: <code style="color:#60a5fa;background:#1e293b;padding:1px 6px;border-radius:4px;font-size:0.7rem;">' + k.substring(0,8) + '...' + k.slice(-4) + '</code></span>';
-}
-function testAndSaveApiKey() {
-    var key = document.getElementById('api-key-input').value.trim();
-    var banner = document.getElementById('api-test-banner');
-    var btn = document.getElementById('api-save-btn');
-    function showBanner(msg, type) {
-        banner.style.display = 'block';
-        var colors = { ok: ['rgba(16,185,129,0.12)','rgba(16,185,129,0.3)','#6ee7b7'], err: ['rgba(239,68,68,0.12)','rgba(239,68,68,0.3)','#fca5a5'], warn: ['rgba(245,158,11,0.12)','rgba(245,158,11,0.3)','#fcd34d'] };
-        var c = colors[type];
-        banner.style.background = c[0]; banner.style.border = '1px solid ' + c[1]; banner.style.color = c[2];
-        banner.textContent = msg;
-    }
-    if (!key) { showBanner('⚠ Ingresa una clave antes de guardar.', 'err'); return; }
-    if (!key.startsWith('gsk_')) { showBanner('⚠ Las claves de Groq comienzan con "gsk_". Verifica tu clave en console.groq.com/keys', 'err'); return; }
-    btn.textContent = '⏳ Probando...'; btn.disabled = true;
-    fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: 'ok' }], max_tokens: 3 })
-    })
-    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; }); })
-    .then(function(res) {
-        btn.textContent = '✓ Probar y Guardar'; btn.disabled = false;
-        if (res.ok) {
-            GROQ_KEY = key;
-            try { localStorage.setItem('financemaster_groq_key', key); } catch(e) {}
-            showBanner('✅ Clave válida y guardada. El asesor IA está activo.', 'ok');
-            setApiStatusDot(true); updateApiCurrentStatus();
-            setTimeout(closeApiSettings, 1800);
-        } else {
-            var msg = (res.data && res.data.error) ? res.data.error.message : ('HTTP ' + res.status);
-            if (res.status === 401) msg = 'Clave rechazada por Groq. Verifica que sea correcta y esté activa.';
-            if (res.status === 429) msg = 'Límite de peticiones alcanzado. Espera un momento.';
-            showBanner('❌ ' + msg, 'err'); setApiStatusDot(false);
-        }
-    })
-    .catch(function(e) {
-        btn.textContent = '✓ Probar y Guardar'; btn.disabled = false;
-        showBanner('⚠ Error de red: ' + (e.message || 'Sin conexión a internet.'), 'warn');
-    });
-}
-function validateGroqKeyOnLogin() {
-    if (!GROQ_KEY || !GROQ_KEY.startsWith('gsk_')) { setApiStatusDot(false); return; }
-    fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: 'ok' }], max_tokens: 3 })
-    })
-    .then(function(r) { setApiStatusDot(r.ok); })
-    .catch(function() { setApiStatusDot(null); });
+
+function saveApiKey() {
+    var newKey = document.getElementById('api-key-input').value.trim();
+    GEMINI_KEY = newKey;
+    localStorage.setItem('fm_api_key', GEMINI_KEY);
+    toggleSettingsModal(false);
+    showToast('API Key guardada con éxito', 'blue');
 }
 
 function buildFinancialSummary() {
@@ -1264,15 +1207,15 @@ function renderAIResponse(text) {
     flushBuffer();
 }
 
-function callGroqAPI(prompt, systemPrompt) {
-    return fetch('https://api.groq.com/openai/v1/chat/completions', {
+function callGeminiAPI(prompt, systemPrompt) {
+    return fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + GROQ_KEY
+            'Authorization': 'Bearer ' + GEMINI_KEY
         },
         body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: 'gemini-1.5-flash',
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user',   content: prompt }
@@ -1281,12 +1224,7 @@ function callGroqAPI(prompt, systemPrompt) {
             temperature: 0.7
         })
     }).then(function(r) {
-        if (!r.ok) return r.json().then(function(e) {
-            var msg = e.error ? e.error.message : ('HTTP ' + r.status);
-            if (r.status === 401) { setApiStatusDot(false); throw new Error('API Key inválida o expirada. Haz clic en el ícono ✏️ del encabezado para actualizarla.'); }
-            if (r.status === 429) { throw new Error('Límite de uso alcanzado. Espera un momento e intenta de nuevo.'); }
-            throw new Error(msg);
-        });
+        if (!r.ok) return r.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + r.status); });
         return r.json();
     }).then(function(d) {
         if (d.choices && d.choices[0] && d.choices[0].message) {
@@ -1297,20 +1235,23 @@ function callGroqAPI(prompt, systemPrompt) {
     });
 }
 
-// Alias para compatibilidad con código existente
-var callGeminiAPI = callGroqAPI;
-
 function runAIAnalysis() {
     setAILoading(true);
+
+    if (!GEMINI_KEY) {
+        renderAIResponse('⚠️ **Falta la API Key.**\n\nPor favor, configura tu llave de acceso de Gemini haciendo clic en "⚙️ API Key" (arriba en el menú) para habilitar el asesor.');
+        return;
+    }
+
     var summary = buildFinancialSummary();
     var system = 'Eres un asesor financiero personal. Analizas los datos financieros del usuario y das consejos claros, directos y accionables en español. Sé conciso pero útil. Usa bullets para los consejos. No uses frases genéricas. Basa TODO en los números reales del usuario.';
     var prompt = summary + '\n\nAnaliza esta situación financiera y dame:\n1. Un diagnóstico rápido (2-3 líneas)\n2. Los 3-5 consejos más importantes y accionables para mejorar mi economía\n3. Una alerta sobre el pago más urgente si aplica';
 
-    callGroqAPI(prompt, system)
+    callGeminiAPI(prompt, system)
         .then(function(text) { renderAIResponse(text); })
         .catch(function(e) {
             setAILoading(false);
-            renderAIResponse('No se pudo conectar con el asesor IA. Verifica tu conexión e intenta de nuevo.\n\n' + (e.message || ''));
+            renderAIResponse('No se pudo conectar con el asesor IA. Verifica tu conexión o tu API Key e intenta de nuevo.\n\n' + (e.message || ''));
         });
 }
 
@@ -1319,15 +1260,21 @@ function askAI() {
     if (!q) return;
     document.getElementById('ai-question').value = '';
     setAILoading(true);
+
+    if (!GEMINI_KEY) {
+        renderAIResponse('⚠️ **Falta la API Key.**\n\nPor favor, configura tu llave de acceso haciendo clic en "⚙️ API Key" (arriba) para poder chatear con el asesor.');
+        return;
+    }
+
     var summary = buildFinancialSummary();
     var system = 'Eres un asesor financiero personal. El usuario te hace preguntas sobre sus finanzas. Responde en español, de forma directa y práctica. Basa tus respuestas en los datos reales del usuario.';
     var prompt = 'Mis datos financieros actuales:\n\n' + summary + '\n\nMi pregunta: ' + q;
 
-    callGroqAPI(prompt, system)
+    callGeminiAPI(prompt, system)
         .then(function(text) { renderAIResponse(text); })
         .catch(function(e) {
             setAILoading(false);
-            renderAIResponse('Error al conectar con el asesor IA. Intenta de nuevo.\n\n' + (e.message || ''));
+            renderAIResponse('Error al conectar con el asesor IA. Verifica tu API Key e intenta de nuevo.\n\n' + (e.message || ''));
         });
 }
 
@@ -1858,6 +1805,12 @@ function clearInvoiceResult() {
 
 function analyzeInvoice() {
     if (!invoiceBase64) { showToast('Espera a que termine de cargar el archivo', 'red'); return; }
+    
+    if (!GEMINI_KEY) {
+        showToast('Falta la API Key', 'red');
+        renderAIResponse('⚠️ **Falta la API Key.**\n\nPor favor, configura tu llave de acceso haciendo clic en "⚙️ API Key" (arriba en el menú principal) para poder analizar documentos.');
+        return;
+    }
 
     setAILoading(true);
     clearInvoiceResult();
@@ -1887,11 +1840,8 @@ function analyzeInvoice() {
         }];
     }
 
-    var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
-    var fallbackModel = 'llama-3.1-8b-instant';
-
-    var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
-    var fallbackModel = 'llama-3.1-8b-instant';
+    var visionModel   = 'gemini-1.5-flash';
+    var fallbackModel = 'gemini-1.5-flash';
 
     var tryModel = function(model, useVision) {
         var body = {
@@ -1903,17 +1853,12 @@ function analyzeInvoice() {
         if (useVision && invoiceMediaType && invoiceMediaType.startsWith('image/')) {
             body.messages = [{role:'system', content: systemPrompt}, messages[0]];
         }
-        return fetch('https://api.groq.com/openai/v1/chat/completions', {
+        return fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GEMINI_KEY },
             body: JSON.stringify(body)
         }).then(function(r) {
-            if (!r.ok) return r.json().then(function(e) {
-                var msg = e.error ? e.error.message : ('HTTP ' + r.status);
-                if (r.status === 401) { setApiStatusDot(false); throw new Error('API Key inválida. Haz clic en el ícono ✏️ del encabezado para actualizarla.'); }
-                if (r.status === 429) { throw new Error('Límite alcanzado. Espera un momento.'); }
-                throw new Error(msg);
-            });
+            if (!r.ok) return r.json().then(function(e) { throw new Error(e.error ? e.error.message : 'HTTP ' + r.status); });
             return r.json();
         }).then(function(d) {
             if (!d.choices || !d.choices[0]) throw new Error('Sin respuesta');
@@ -1983,44 +1928,10 @@ function addInvoiceToTab() {
 document.getElementById('edit-profile-modal').addEventListener('click', function(e) {
     if (e.target === this) toggleProfileOptions(false);
 });
-</script>
 
-<!-- API KEY SETTINGS MODAL -->
-<div id="api-settings-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(2,6,23,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
-    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:1.5rem;padding:2rem;width:100%;max-width:440px;margin:1rem;box-shadow:0 30px 60px rgba(0,0,0,0.6);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
-            <div>
-                <h3 style="color:white;font-size:1.1rem;font-weight:900;margin:0;">&#128273; Groq API Key</h3>
-                <p style="color:#64748b;font-size:0.7rem;font-weight:600;margin:0.25rem 0 0;text-transform:uppercase;letter-spacing:0.1em;">Configuración del Asesor IA</p>
-            </div>
-            <button onclick="closeApiSettings()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.6rem;color:#94a3b8;cursor:pointer;padding:0.4rem 0.7rem;font-size:1rem;line-height:1;">&#x2715;</button>
-        </div>
-        <div id="api-test-banner" style="display:none;border-radius:0.75rem;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.75rem;font-weight:700;"></div>
-        <label style="display:block;font-size:0.65rem;font-weight:900;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;margin-bottom:0.4rem;">Tu clave Groq (console.groq.com/keys)</label>
-        <div style="position:relative;">
-            <input type="password" id="api-key-input" placeholder="gsk_..."
-                style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:0.75rem;padding:0.8rem 3rem 0.8rem 1rem;color:white;font-size:0.82rem;font-family:monospace;outline:none;box-sizing:border-box;"
-                oninput="document.getElementById('api-test-banner').style.display='none'">
-            <button onclick="toggleApiKeyVis()" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748b;padding:4px;line-height:0;">
-                <svg id="api-eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-        </div>
-        <p style="color:#475569;font-size:0.65rem;margin:0.5rem 0 1.25rem;line-height:1.6;">Obtén tu clave gratis en <a href="https://console.groq.com/keys" target="_blank" style="color:#60a5fa;">console.groq.com/keys</a>. Se guarda localmente en tu navegador.</p>
-        <div style="display:flex;gap:0.75rem;">
-            <button onclick="testAndSaveApiKey()" id="api-save-btn"
-                style="flex:1;background:#3b82f6;color:white;border:none;border-radius:0.75rem;padding:0.75rem;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:0.04em;">
-                &#10003; Probar y Guardar
-            </button>
-            <button onclick="closeApiSettings()"
-                style="background:rgba(255,255,255,0.06);color:#94a3b8;border:1px solid rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.75rem 1rem;font-weight:700;font-size:0.8rem;cursor:pointer;">
-                Cancelar
-            </button>
-        </div>
-        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid #1e293b;">
-            <p style="color:#475569;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 0.4rem;">Estado actual</p>
-            <div id="api-current-status" style="font-size:0.75rem;color:#64748b;">—</div>
-        </div>
-    </div>
-</div>
+document.getElementById('settings-modal').addEventListener('click', function(e) {
+    if (e.target === this) toggleSettingsModal(false);
+});
+</script>
 </body>
 </html>
