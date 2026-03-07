@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Master AI - V9.2</title>
+    <title>Finance Master AI - V9.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -232,11 +232,24 @@
             padding: 0.75rem 1rem 0.5rem;
             background: rgba(168,85,247,0.03);
         }
+
+        /* Save indicator */
+        #save-indicator {
+            position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+            background: #0f172a; border: 1px solid #1e293b; border-radius: 2rem;
+            padding: 0.5rem 1.25rem; font-size: 0.7rem; font-weight: 700;
+            color: #64748b; display: none; z-index: 200;
+            transition: all 0.3s; align-items: center; gap: 0.5rem;
+        }
+        #save-indicator.saving { border-color: #f59e0b; color: #fbbf24; display: flex; }
+        #save-indicator.saved  { border-color: #10b981; color: #34d399; display: flex; }
+        #save-indicator.error  { border-color: #ef4444; color: #f87171; display: flex; }
     </style>
 </head>
 <body class="min-h-screen font-sans bg-slate-950 text-slate-200">
 
 <div id="toast"></div>
+<div id="save-indicator"><span id="save-indicator-text">Guardando...</span></div>
 
 <div id="app-root">
     <div id="login-screen" class="fixed inset-0 z-[200] flex items-center justify-center p-4 overflow-hidden">
@@ -310,7 +323,7 @@
                 </div>
 
                 <p style="text-align:center;font-size:0.6rem;font-weight:700;color:rgba(255,255,255,0.12);text-transform:uppercase;letter-spacing:0.12em;margin-top:1.6rem;">
-                    Finance Master AI · V9.2
+                    Finance Master AI · V9.3
                 </p>
             </div>
         </div>
@@ -322,7 +335,7 @@
                 <div>
                     <div class="flex items-center gap-3">
                         <h1 class="text-4xl font-black tracking-tighter italic text-white">AI<span class="text-blue-500">Finance</span></h1>
-                        <span class="px-2 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[10px] font-bold rounded uppercase tracking-widest text-nowrap">V9.2</span>
+                        <span class="px-2 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[10px] font-bold rounded uppercase tracking-widest text-nowrap">V9.3</span>
                     </div>
                     <div class="flex items-center gap-2 mt-1">
                         <p class="text-slate-400 font-medium italic text-sm">Sesión activa:</p>
@@ -345,7 +358,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                         <span id="notif-bell-badge" class="hidden">0</span>
                     </button>
-                    <button onclick="openApiSettings()" class="relative bg-slate-800 border border-slate-700 px-4 py-3 rounded-2xl hover:bg-slate-700 transition-all active:scale-95" title="Configurar Groq API Key">
+                    <button onclick="openApiSettings()" class="relative bg-slate-800 border border-slate-700 px-4 py-3 rounded-2xl hover:bg-slate-700 transition-all active:scale-95" title="Configurar API Keys">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/><path d="m15 5 3 3"/></svg>
                         <span id="api-status-dot" style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #020617;display:none;box-shadow:0 0 6px #ef4444;"></span>
                     </button>
@@ -465,7 +478,7 @@
                             <button onclick="analyzeInvoice()"
                                 class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-black rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5 mt-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                Analizar Factura
+                                Analizar Factura con IA
                             </button>
                         </div>
 
@@ -625,11 +638,9 @@
         </div>
     </div>
 
-    <!-- ══ PROFILE MODAL ══════════════════════════════════════════════════════ -->
+    <!-- PROFILE MODAL -->
     <div id="edit-profile-modal" class="fixed inset-0 z-[250] bg-slate-950/90 backdrop-blur-sm hidden flex items-center justify-center p-4" style="overflow-y:auto;">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-[2rem] shadow-2xl modal-enter" style="margin:auto;">
-
-            <!-- Header -->
             <div style="padding:1.75rem 2rem 0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:1.25rem;">
                 <div>
                     <h3 style="color:white;font-size:1.2rem;font-weight:900;margin:0;letter-spacing:-0.03em;">👤 Mi Perfil</h3>
@@ -637,15 +648,11 @@
                 </div>
                 <button onclick="toggleProfileOptions(false)" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.6rem;color:#94a3b8;cursor:pointer;padding:0.4rem 0.7rem;font-size:1rem;line-height:1;">✕</button>
             </div>
-
-            <!-- Internal tabs -->
             <div style="display:flex;gap:0;border-bottom:1px solid #1e293b;padding:0 2rem;">
                 <button onclick="profileTab('info')" id="ptab-info" class="profile-ptab" style="padding:0.85rem 1.25rem;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;border:none;background:none;cursor:pointer;border-bottom:2px solid #3b82f6;color:#60a5fa;margin-bottom:-1px;">Información</button>
                 <button onclick="profileTab('keys')" id="ptab-keys" class="profile-ptab" style="padding:0.85rem 1.25rem;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#475569;margin-bottom:-1px;">🔑 Claves IA</button>
                 <button onclick="profileTab('danger')" id="ptab-danger" class="profile-ptab" style="padding:0.85rem 1.25rem;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#475569;margin-bottom:-1px;">⚠ Peligro</button>
             </div>
-
-            <!-- TAB: Info -->
             <div id="ppanel-info" style="padding:1.75rem 2rem;">
                 <label style="display:block;font-size:0.65rem;font-weight:900;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;margin-bottom:0.45rem;">Nombre de usuario</label>
                 <input type="text" id="edit-profile-name" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:0.75rem;padding:0.85rem 1rem;color:white;font-size:0.9rem;font-weight:700;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#334155'" placeholder="Tu nombre">
@@ -654,27 +661,18 @@
                     <button onclick="renameCurrentProfile()" style="flex:2;padding:0.8rem;background:#3b82f6;border:none;border-radius:0.75rem;color:white;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:0.04em;">Guardar nombre</button>
                 </div>
             </div>
-
-            <!-- TAB: API Keys -->
             <div id="ppanel-keys" style="display:none;padding:1.5rem 2rem 2rem;">
-
-                <!-- Active Provider Selector -->
                 <div style="background:#0f172a;border:1px solid #1e293b;border-radius:1rem;padding:1rem 1.25rem;margin-bottom:1.5rem;">
                     <label style="display:block;font-size:0.65rem;font-weight:900;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;margin-bottom:0.6rem;">Proveedor activo</label>
                     <div style="display:flex;flex-wrap:wrap;gap:0.5rem;" id="provider-selector-btns"></div>
                     <p style="font-size:0.65rem;color:#475569;margin:0.6rem 0 0;line-height:1.5;">El asesor IA usará este proveedor. Si falla, intentará con los siguientes que tengan clave configurada.</p>
                 </div>
-
-                <!-- Provider Cards -->
                 <div style="display:flex;flex-direction:column;gap:1rem;" id="provider-cards-wrap"></div>
-
                 <button onclick="saveAllApiKeys()" style="width:100%;margin-top:1.5rem;padding:0.85rem;background:#3b82f6;border:none;border-radius:0.75rem;color:white;font-weight:900;font-size:0.85rem;cursor:pointer;letter-spacing:0.04em;">
                     💾 Guardar todas las claves
                 </button>
                 <p id="keys-save-msg" style="display:none;text-align:center;font-size:0.72rem;font-weight:700;margin-top:0.75rem;"></p>
             </div>
-
-            <!-- TAB: Danger zone -->
             <div id="ppanel-danger" style="display:none;padding:1.75rem 2rem;">
                 <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:1rem;padding:1.25rem;">
                     <p style="color:#f87171;font-size:0.8rem;font-weight:800;margin:0 0 0.5rem;">Eliminar perfil permanentemente</p>
@@ -682,7 +680,6 @@
                     <button onclick="deleteCurrentProfile()" style="width:100%;padding:0.8rem;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:0.75rem;color:#f87171;font-weight:900;font-size:0.8rem;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s;" onmouseover="this.style.background='#dc2626';this.style.color='white'" onmouseout="this.style.background='rgba(239,68,68,0.15)';this.style.color='#f87171'">🗑 ELIMINAR MI PERFIL</button>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -837,7 +834,8 @@ function handleAccess(mode) {
                 if (JSON.parse(stored).password !== pass) { showToast("Contraseña incorrecta", "red"); finish(); return; }
                 currentUser = { id: user, name: user };
                 var d = localStorage.getItem('fm_data_' + user);
-                localData = d ? JSON.parse(d) : { db: { "General": [] }, goals: [] };
+                // ── FIX: Validate loaded data structure ──
+                localData = validateData(d ? tryParseJSON(d) : null);
             } else {
                 if (stored) { showToast("El usuario ya existe", "red"); finish(); return; }
                 localStorage.setItem(key, JSON.stringify({ password: pass }));
@@ -860,7 +858,19 @@ function handleAccess(mode) {
                     currentUser = { id: user, name: user };
                     var dataRef = fb.doc(fb.db, 'artifacts', fb.appId, 'public', 'data', 'finance_data_' + user);
                     return fb.getDoc(dataRef).then(function(dSnap) {
-                        localData = dSnap.exists() ? dSnap.data() : { db: { "General": [] }, goals: [] };
+                        var fbData = dSnap.exists() ? dSnap.data() : null;
+                        // ── FIX: Validate + fallback to localStorage if Firebase data is empty ──
+                        if (!fbData || !fbData.db || Object.keys(fbData.db).length === 0) {
+                            var lsBackup = localStorage.getItem('fm_data_backup_' + user);
+                            if (lsBackup) {
+                                var parsed = tryParseJSON(lsBackup);
+                                if (parsed && parsed.db && Object.keys(parsed.db).length > 0) {
+                                    fbData = parsed;
+                                    showToast("Datos restaurados desde copia local", "blue");
+                                }
+                            }
+                        }
+                        localData = validateData(fbData);
                         enterDashboard();
                     });
                 } else {
@@ -881,16 +891,43 @@ function handleAccess(mode) {
     });
 }
 
+// ── FIX: Helper to safely parse JSON ────────────────────────────────────────
+function tryParseJSON(str) {
+    try { return JSON.parse(str); } catch(e) { return null; }
+}
+
+// ── FIX: Validate and sanitize loaded data ──────────────────────────────────
+function validateData(data) {
+    if (!data || typeof data !== 'object') return { db: { "General": [] }, goals: [] };
+    if (!data.db || typeof data.db !== 'object') data.db = { "General": [] };
+    if (!data.goals || !Array.isArray(data.goals)) data.goals = [];
+    // Sanitize each tab's items
+    Object.keys(data.db).forEach(function(tab) {
+        if (!Array.isArray(data.db[tab])) data.db[tab] = [];
+        data.db[tab] = data.db[tab].map(function(item) {
+            return {
+                c: String(item.c || ''),
+                f: String(item.f || ''),
+                m: parseFloat(item.m || 0),
+                p: !!item.p
+            };
+        });
+    });
+    return data;
+}
+
 function enterDashboard() {
     document.getElementById('login-screen').classList.add('hidden');
-        loadUserApiKeys(currentUser.id);
-        validateGroqKeyOnLogin();
+    loadUserApiKeys(currentUser.id);
+    validateAIKeyOnLogin();
     document.getElementById('dashboard-content').classList.remove('hidden');
     document.getElementById('current-profile-name').innerText = currentUser.name;
     if (!localData.goals) localData.goals = [];
     if (!localData.db) localData.db = {};
     activeTab = Object.keys(localData.db)[0] || "";
     refreshUI();
+    // Start periodic auto-save every 60 seconds
+    setInterval(function() { _doSave(false); }, 60000);
 }
 
 function logout() { location.reload(); }
@@ -1030,6 +1067,7 @@ function updateTotals() {
     document.getElementById('sum-total').innerText = '$' + total.toLocaleString('en-US', {minimumFractionDigits:2});
     document.getElementById('sum-paid').innerText = '$' + paid.toLocaleString('en-US', {minimumFractionDigits:2});
     document.getElementById('sum-pending').innerText = '$' + (total-paid).toLocaleString('en-US', {minimumFractionDigits:2});
+    // ── FIX: Debounced save instead of immediate save on every keystroke ──
     saveCurrentData();
 }
 
@@ -1059,31 +1097,87 @@ function addNewTab() {
         activeTab = name;
         var now = new Date();
         calYear = now.getFullYear(); calMonth = now.getMonth(); calSelDay = null;
-        refreshUI(); saveCurrentData();
+        refreshUI(); saveCurrentData(true);
     }
 }
 function deleteTab(tab) {
     if (Object.keys(localData.db).length <= 1) return showToast("No puedes borrar la última pestaña", "red");
     if (confirm('¿Borrar "' + tab + '"?')) {
-        delete localData.db[tab]; activeTab = Object.keys(localData.db)[0] || ""; refreshUI(); saveCurrentData();
+        delete localData.db[tab]; activeTab = Object.keys(localData.db)[0] || ""; refreshUI(); saveCurrentData(true);
     }
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// FIX #1 — SAVE WITH DEBOUNCE + LOCALSTORAGE BACKUP (prevents data loss)
+// ══════════════════════════════════════════════════════════════════════════════
+var _saveTimer = null;
+var _saveIndicatorTimer = null;
+
+function setSaveIndicator(state, msg) {
+    var el = document.getElementById('save-indicator');
+    var txt = document.getElementById('save-indicator-text');
+    clearTimeout(_saveIndicatorTimer);
+    el.className = 'save-indicator ' + state;
+    txt.textContent = msg;
+    if (state !== 'saving') {
+        _saveIndicatorTimer = setTimeout(function() { el.style.display = 'none'; }, 2000);
+    }
+}
+
+// Called by UI — debounced for keystrokes, immediate for explicit saves
 function saveCurrentData(feedback) {
     if (!currentUser) return;
+    if (feedback) {
+        clearTimeout(_saveTimer);
+        _doSave(true);
+    } else {
+        clearTimeout(_saveTimer);
+        _saveTimer = setTimeout(function() { _doSave(false); }, 1500);
+    }
+}
+
+function _doSave(feedback) {
+    if (!currentUser) return;
+
+    // ── Always write a localStorage backup first (fast, synchronous) ──
+    try {
+        var snapshot = JSON.stringify(localData);
+        localStorage.setItem('fm_data_backup_' + currentUser.id, snapshot);
+        // Also keep versioned backup (rotates 3 slots)
+        var slot = (parseInt(localStorage.getItem('fm_backup_slot_' + currentUser.id) || '0') % 3) + 1;
+        localStorage.setItem('fm_data_backup_' + currentUser.id + '_v' + slot, snapshot);
+        localStorage.setItem('fm_backup_slot_' + currentUser.id, String(slot));
+    } catch(e) { console.warn('localStorage backup failed:', e); }
+
     var fb = window._fb || {};
-    var doSave = function() {
-        if (fb.firebaseReady) {
-            var dataRef = fb.doc(fb.db, 'artifacts', fb.appId, 'public', 'data', 'finance_data_' + currentUser.id);
-            fb.setDoc(dataRef, localData).then(function() {
-                if (feedback) showToast("Guardado en la nube", "blue");
-            }).catch(function(e) { console.error(e); if (feedback) showToast("Error al guardar", "red"); });
-        } else {
+
+    if (!fb.firebaseReady) {
+        try {
             localStorage.setItem('fm_data_' + currentUser.id, JSON.stringify(localData));
-            if (feedback) showToast("Guardado localmente", "blue");
+            if (feedback) { setSaveIndicator('saved', '✓ Guardado localmente'); showToast("Guardado localmente", "blue"); }
+        } catch(e) {
+            if (feedback) setSaveIndicator('error', '✕ Error al guardar');
         }
+        return;
+    }
+
+    if (feedback) setSaveIndicator('saving', '⏳ Guardando...');
+
+    var doFBSave = function() {
+        var dataRef = fb.doc(fb.db, 'artifacts', fb.appId, 'public', 'data', 'finance_data_' + currentUser.id);
+        fb.setDoc(dataRef, localData)
+            .then(function() {
+                if (feedback) { setSaveIndicator('saved', '✓ Guardado en la nube'); showToast("Guardado en la nube ☁️", "blue"); }
+            })
+            .catch(function(e) {
+                console.error('Firebase save error:', e);
+                // Data is already in localStorage backup — no data loss
+                if (feedback) { setSaveIndicator('error', '⚠ Error nube, respaldo local OK'); showToast("Error nube — respaldo local guardado", "red"); }
+            });
     };
-    if (window._fbReady) doSave(); else document.addEventListener('fb-ready', doSave, { once: true });
+
+    if (window._fbReady) doFBSave();
+    else document.addEventListener('fb-ready', doFBSave, { once: true });
 }
 
 function renderCharts() {
@@ -1104,96 +1198,42 @@ function updateCharts() {
     pieChart.update();
 }
 
-// ─── AGENTE IA — API KEY ACTUALIZADA ─────────────────────────────────────────
-// ── Tu Google Gemini API Key (consíguela gratis en aistudio.google.com) ──
 // ══════════════════════════════════════════════════════════════════════════════
-// MOTOR IA MULTI-PROVEEDOR
+// AI ENGINE — MULTI-PROVIDER
 // ══════════════════════════════════════════════════════════════════════════════
-
-// Clave Groq de respaldo (del desarrollador) — se usa solo si el usuario no configura ninguna
 var GROQ_KEY_DEFAULT = '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';
-var GROQ_KEY = GROQ_KEY_DEFAULT; // alias de compatibilidad, se actualiza al cargar perfil
+var GROQ_KEY = GROQ_KEY_DEFAULT;
 
-// Definición de proveedores soportados
 var AI_PROVIDERS = [
     {
-        id: 'groq',
-        name: 'Groq',
-        logo: '⚡',
-        color: '#f97316',
-        placeholder: 'gsk_...',
-        hint: 'console.groq.com/keys — Gratis, muy rápido',
-        hintUrl: 'https://console.groq.com/keys',
-        endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-        model: 'llama-3.3-70b-versatile',
-        format: 'openai',
-        testModel: 'llama-3.1-8b-instant'
+        id: 'groq', name: 'Groq', logo: '⚡', color: '#f97316',
+        placeholder: 'gsk_...', hint: 'console.groq.com/keys — Gratis, muy rápido', hintUrl: 'https://console.groq.com/keys',
+        endpoint: 'https://api.groq.com/openai/v1/chat/completions', model: 'llama-3.3-70b-versatile', format: 'openai', testModel: 'llama-3.1-8b-instant'
     },
     {
-        id: 'openai',
-        name: 'OpenAI',
-        logo: '🤖',
-        color: '#10b981',
-        placeholder: 'sk-...',
-        hint: 'platform.openai.com/api-keys — GPT-4o mini (pago)',
-        hintUrl: 'https://platform.openai.com/api-keys',
-        endpoint: 'https://api.openai.com/v1/chat/completions',
-        model: 'gpt-4o-mini',
-        format: 'openai',
-        testModel: 'gpt-4o-mini'
+        id: 'openai', name: 'OpenAI', logo: '🤖', color: '#10b981',
+        placeholder: 'sk-...', hint: 'platform.openai.com/api-keys — GPT-4o mini (pago)', hintUrl: 'https://platform.openai.com/api-keys',
+        endpoint: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini', format: 'openai', testModel: 'gpt-4o-mini'
     },
     {
-        id: 'gemini',
-        name: 'Gemini',
-        logo: '✨',
-        color: '#6366f1',
-        placeholder: 'AIza...',
-        hint: 'aistudio.google.com/apikey — Gratis con cuenta Google',
-        hintUrl: 'https://aistudio.google.com/apikey',
-        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-        model: 'gemini-2.0-flash',
-        format: 'gemini',
-        testModel: 'gemini-2.0-flash'
+        id: 'gemini', name: 'Gemini', logo: '✨', color: '#6366f1',
+        placeholder: 'AIza...', hint: 'aistudio.google.com/apikey — Gratis con cuenta Google', hintUrl: 'https://aistudio.google.com/apikey',
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', model: 'gemini-2.0-flash', format: 'gemini', testModel: 'gemini-2.0-flash'
     },
     {
-        id: 'grok',
-        name: 'Grok (xAI)',
-        logo: '𝕏',
-        color: '#ffffff',
-        placeholder: 'xai-...',
-        hint: 'console.x.ai — Grok 3 mini',
-        hintUrl: 'https://console.x.ai',
-        endpoint: 'https://api.x.ai/v1/chat/completions',
-        model: 'grok-3-mini',
-        format: 'openai',
-        testModel: 'grok-3-mini'
+        id: 'grok', name: 'Grok (xAI)', logo: '𝕏', color: '#ffffff',
+        placeholder: 'xai-...', hint: 'console.x.ai — Grok 3 mini', hintUrl: 'https://console.x.ai',
+        endpoint: 'https://api.x.ai/v1/chat/completions', model: 'grok-3-mini', format: 'openai', testModel: 'grok-3-mini'
     },
     {
-        id: 'custom',
-        name: 'Personalizado',
-        logo: '⚙️',
-        color: '#94a3b8',
-        placeholder: 'Tu API Key...',
-        hint: 'Cualquier API compatible con OpenAI',
-        hintUrl: null,
-        endpoint: '',
-        model: '',
-        format: 'openai',
-        testModel: ''
+        id: 'custom', name: 'Personalizado', logo: '⚙️', color: '#94a3b8',
+        placeholder: 'Tu API Key...', hint: 'Cualquier API compatible con OpenAI', hintUrl: null,
+        endpoint: '', model: '', format: 'openai', testModel: ''
     }
 ];
 
-// Estado de claves del usuario activo
-var userApiKeys = {
-    active: 'groq',   // proveedor activo
-    groq:   '',
-    openai: '',
-    gemini: '',
-    grok:   '',
-    custom: { key: '', endpoint: '', model: '' }
-};
+var userApiKeys = { active: 'groq', groq: '', openai: '', gemini: '', grok: '', custom: { key: '', endpoint: '', model: '' } };
 
-// ── Cargar claves del usuario desde localStorage ────────────────────────────
 function loadUserApiKeys(userId) {
     try {
         var stored = localStorage.getItem('fm_apikeys_' + userId);
@@ -1203,7 +1243,6 @@ function loadUserApiKeys(userId) {
         } else {
             userApiKeys = { active: 'groq', groq: GROQ_KEY_DEFAULT, openai: '', gemini: '', grok: '', custom: { key: '', endpoint: '', model: '' } };
         }
-        // Actualizar alias de compatibilidad
         GROQ_KEY = userApiKeys.groq || GROQ_KEY_DEFAULT;
     } catch(e) {
         userApiKeys = { active: 'groq', groq: GROQ_KEY_DEFAULT, openai: '', gemini: '', grok: '', custom: { key: '', endpoint: '', model: '' } };
@@ -1211,46 +1250,33 @@ function loadUserApiKeys(userId) {
     }
 }
 
-// ── Guardar claves del usuario ──────────────────────────────────────────────
 function saveUserApiKeys(userId) {
     try { localStorage.setItem('fm_apikeys_' + userId, JSON.stringify(userApiKeys)); } catch(e) {}
 }
 
-// ── Llamada unificada IA con fallback automático ────────────────────────────
 function callAI(prompt, systemPrompt) {
-    // Orden de intento: activo primero, luego los demás que tengan clave
     var order = [userApiKeys.active];
-    AI_PROVIDERS.forEach(function(p) {
-        if (order.indexOf(p.id) === -1) order.push(p.id);
-    });
-
+    AI_PROVIDERS.forEach(function(p) { if (order.indexOf(p.id) === -1) order.push(p.id); });
     function tryNext(idx) {
         if (idx >= order.length) return Promise.reject(new Error('Sin proveedores IA configurados. Abre tu perfil → Claves IA y agrega una API Key.'));
         var pid = order[idx];
         var key = pid === 'custom' ? (userApiKeys.custom && userApiKeys.custom.key) : userApiKeys[pid];
         if (!key || !key.trim()) return tryNext(idx + 1);
-        return callProvider(pid, key, prompt, systemPrompt)
-            .catch(function(e) {
-                if (e._fatal) return Promise.reject(e);
-                return tryNext(idx + 1);
-            });
+        return callProvider(pid, key, prompt, systemPrompt).catch(function(e) {
+            if (e._fatal) return Promise.reject(e);
+            return tryNext(idx + 1);
+        });
     }
     return tryNext(0);
 }
 
-// ── Llamada a un proveedor específico ───────────────────────────────────────
 function callProvider(providerId, key, prompt, systemPrompt) {
     var prov = AI_PROVIDERS.find(function(p) { return p.id === providerId; });
-    if (!prov) return Promise.reject(new Error('Proveedor desconocido: ' + providerId));
-
+    if (!prov) return Promise.reject(new Error('Proveedor desconocido'));
     var endpoint = providerId === 'custom' ? (userApiKeys.custom.endpoint || '') : prov.endpoint;
     var model    = providerId === 'custom' ? (userApiKeys.custom.model || 'gpt-3.5-turbo') : prov.model;
-
-    if (!endpoint) return Promise.reject(new Error('Endpoint no configurado para ' + prov.name));
-
-    if (prov.format === 'gemini') {
-        return callGeminiFormat(endpoint, key, prompt, systemPrompt);
-    }
+    if (!endpoint) return Promise.reject(new Error('Endpoint no configurado'));
+    if (prov.format === 'gemini') return callGeminiFormat(endpoint, key, prompt, systemPrompt);
     return callOpenAIFormat(endpoint, key, model, prompt, systemPrompt);
 }
 
@@ -1258,23 +1284,11 @@ function callOpenAIFormat(endpoint, key, model, prompt, systemPrompt) {
     return fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify({
-            model: model,
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user',   content: prompt }
-            ],
-            max_tokens: 1024,
-            temperature: 0.7
-        })
+        body: JSON.stringify({ model: model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }], max_tokens: 1024, temperature: 0.7 })
     }).then(function(r) {
         if (!r.ok) return r.json().then(function(e) {
             var msg = e.error ? e.error.message : ('HTTP ' + r.status);
-            if (r.status === 401 || r.status === 403) {
-                var err = new Error('API Key inválida para este proveedor (' + r.status + '). Verifica tu clave en el perfil.');
-                err._fatal = false; // puede fallar y hacer fallback
-                throw err;
-            }
+            if (r.status === 401 || r.status === 403) { var err = new Error(msg); err._fatal = false; throw err; }
             if (r.status === 429) throw new Error('Límite de uso alcanzado. Espera un momento.');
             throw new Error(msg);
         });
@@ -1299,128 +1313,39 @@ function callGeminiFormat(endpoint, key, prompt, systemPrompt) {
     }).then(function(r) {
         if (!r.ok) return r.json().then(function(e) {
             var msg = (e.error && e.error.message) ? e.error.message : ('HTTP ' + r.status);
-            if (r.status === 400 || r.status === 401 || r.status === 403) {
-                var err = new Error('API Key de Gemini inválida: ' + msg);
-                err._fatal = false;
-                throw err;
-            }
-            throw new Error(msg);
+            var err = new Error(msg); err._fatal = false; throw err;
         });
         return r.json();
     }).then(function(d) {
-        if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) {
-            return d.candidates[0].content.parts[0].text;
-        }
+        if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) return d.candidates[0].content.parts[0].text;
         throw new Error('Respuesta inesperada de Gemini');
     });
 }
 
-// ── Alias de compatibilidad ─────────────────────────────────────────────────
-function callGroqAPI(prompt, systemPrompt) { return callAI(prompt, systemPrompt); }
-var callGeminiAPI = callGroqAPI;
-
-// ── Test de un proveedor específico ─────────────────────────────────────────
 function testProvider(providerId, key) {
     var prov = AI_PROVIDERS.find(function(p) { return p.id === providerId; });
     if (!prov) return Promise.reject(new Error('Proveedor no encontrado'));
     var endpoint = providerId === 'custom' ? (userApiKeys.custom.endpoint || '') : prov.endpoint;
     var model    = providerId === 'custom' ? (userApiKeys.custom.model || '') : prov.testModel;
     if (!endpoint) return Promise.reject(new Error('Configura el endpoint primero'));
-    if (prov.format === 'gemini') {
-        return callGeminiFormat(endpoint, key, 'Di solo: ok', 'Responde con una sola palabra.');
-    }
+    if (prov.format === 'gemini') return callGeminiFormat(endpoint, key, 'Di solo: ok', 'Responde con una sola palabra.');
     return callOpenAIFormat(endpoint, key, model, 'Di solo: ok', 'Responde con una sola palabra.');
 }
 
-// ── Validar al iniciar sesión ────────────────────────────────────────────────
-function validateGroqKeyOnLogin() {
-    var activeKey = userApiKeys.active === 'custom'
-        ? (userApiKeys.custom && userApiKeys.custom.key)
-        : userApiKeys[userApiKeys.active];
+function validateAIKeyOnLogin() {
+    var activeKey = userApiKeys.active === 'custom' ? (userApiKeys.custom && userApiKeys.custom.key) : userApiKeys[userApiKeys.active];
     if (!activeKey || !activeKey.trim()) { setApiStatusDot(false); return; }
-    callAI('ok', 'Responde ok.')
-        .then(function() { setApiStatusDot(true); })
-        .catch(function() { setApiStatusDot(null); });
+    callAI('ok', 'Responde ok.').then(function() { setApiStatusDot(true); }).catch(function() { setApiStatusDot(null); });
 }
+// keep old name as alias
+function validateGroqKeyOnLogin() { validateAIKeyOnLogin(); }
 
-function openApiSettings() {
-    // Redirect to profile modal, keys tab
-    toggleProfileOptions(true);
-    setTimeout(function() { profileTab('keys'); }, 50);
-}
-function closeApiSettings() { document.getElementById('api-settings-modal').style.display = 'none'; }
-function toggleApiKeyVis() {
-    var inp = document.getElementById('api-key-input');
-    var ico = document.getElementById('api-eye-icon');
-    if (inp.type === 'password') {
-        inp.type = 'text';
-        ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
-    } else {
-        inp.type = 'password';
-        ico.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-    }
-}
+function openApiSettings() { toggleProfileOptions(true); setTimeout(function() { profileTab('keys'); }, 50); }
 function setApiStatusDot(ok) {
     var dot = document.getElementById('api-status-dot');
     if (!dot) return;
     dot.style.display = (ok === null) ? 'none' : 'block';
     if (ok !== null) { dot.style.background = ok ? '#10b981' : '#ef4444'; dot.style.boxShadow = ok ? '0 0 6px #10b981' : '0 0 6px #ef4444'; }
-}
-function updateApiCurrentStatus() {
-    var el = document.getElementById('api-current-status'); if (!el) return;
-    var k = GROQ_KEY || '';
-    if (!k || !k.startsWith('gsk_')) { el.innerHTML = '<span style="color:#ef4444;">⚠ Sin clave Groq válida</span>'; return; }
-    el.innerHTML = '<span style="color:#94a3b8;">Clave activa: <code style="color:#60a5fa;background:#1e293b;padding:1px 6px;border-radius:4px;font-size:0.7rem;">' + k.substring(0,8) + '...' + k.slice(-4) + '</code></span>';
-}
-function testAndSaveApiKey() {
-    var key = document.getElementById('api-key-input').value.trim();
-    var banner = document.getElementById('api-test-banner');
-    var btn = document.getElementById('api-save-btn');
-    function showBanner(msg, type) {
-        banner.style.display = 'block';
-        var colors = { ok: ['rgba(16,185,129,0.12)','rgba(16,185,129,0.3)','#6ee7b7'], err: ['rgba(239,68,68,0.12)','rgba(239,68,68,0.3)','#fca5a5'], warn: ['rgba(245,158,11,0.12)','rgba(245,158,11,0.3)','#fcd34d'] };
-        var c = colors[type];
-        banner.style.background = c[0]; banner.style.border = '1px solid ' + c[1]; banner.style.color = c[2];
-        banner.textContent = msg;
-    }
-    if (!key) { showBanner('⚠ Ingresa una clave antes de guardar.', 'err'); return; }
-    if (!key.startsWith('gsk_')) { showBanner('⚠ Las claves de Groq comienzan con "gsk_". Verifica tu clave en console.groq.com/keys', 'err'); return; }
-    btn.textContent = '⏳ Probando...'; btn.disabled = true;
-    fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: 'ok' }], max_tokens: 3 })
-    })
-    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; }); })
-    .then(function(res) {
-        btn.textContent = '✓ Probar y Guardar'; btn.disabled = false;
-        if (res.ok) {
-            GROQ_KEY = key;
-            try { localStorage.setItem('financemaster_groq_key', key); } catch(e) {}
-            showBanner('✅ Clave válida y guardada. El asesor IA está activo.', 'ok');
-            setApiStatusDot(true); updateApiCurrentStatus();
-            setTimeout(closeApiSettings, 1800);
-        } else {
-            var msg = (res.data && res.data.error) ? res.data.error.message : ('HTTP ' + res.status);
-            if (res.status === 401) msg = 'Clave rechazada por Groq. Verifica que sea correcta y esté activa.';
-            if (res.status === 429) msg = 'Límite de peticiones alcanzado. Espera un momento.';
-            showBanner('❌ ' + msg, 'err'); setApiStatusDot(false);
-        }
-    })
-    .catch(function(e) {
-        btn.textContent = '✓ Probar y Guardar'; btn.disabled = false;
-        showBanner('⚠ Error de red: ' + (e.message || 'Sin conexión a internet.'), 'warn');
-    });
-}
-function validateGroqKeyOnLogin() {
-    if (!GROQ_KEY || !GROQ_KEY.startsWith('gsk_')) { setApiStatusDot(false); return; }
-    fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: 'ok' }], max_tokens: 3 })
-    })
-    .then(function(r) { setApiStatusDot(r.ok); })
-    .catch(function() { setApiStatusDot(null); });
 }
 
 function buildFinancialSummary() {
@@ -1444,9 +1369,7 @@ function buildFinancialSummary() {
                 if (diff >= 0) futurePayments.push({ name: item.c, tab: tab, amount: v, daysLeft: diff, date: item.f });
             }
         });
-        grandTotal   += tTotal;
-        grandPaid    += tPaid;
-        grandPending += (tTotal - tPaid);
+        grandTotal += tTotal; grandPaid += tPaid; grandPending += (tTotal - tPaid);
         lines.push('Pestaña "' + tab + '": ' + items.length + ' registros | Total: $' + tTotal.toFixed(2) + ' | Pagado: $' + tPaid.toFixed(2) + ' | Pendiente: $' + (tTotal - tPaid).toFixed(2));
     });
 
@@ -1455,35 +1378,19 @@ function buildFinancialSummary() {
         return '  - ' + p.name + ' (' + p.tab + '): $' + p.amount.toFixed(2) + ' — ' + (p.daysLeft === 0 ? 'HOY' : 'en ' + p.daysLeft + ' días') + ' (' + p.date + ')';
     });
 
-    return [
-        'RESUMEN FINANCIERO ACTUAL:',
-        'Total acumulado (todas las pestañas): $' + grandTotal.toFixed(2),
-        'Total pagado: $' + grandPaid.toFixed(2),
-        'Total pendiente: $' + grandPending.toFixed(2),
-        '',
-        'DESGLOSE POR CATEGORÍA:',
-        lines.join('\n'),
-        '',
-        'PRÓXIMOS PAGOS PENDIENTES (los más urgentes):',
-        futureLines.length > 0 ? futureLines.join('\n') : '  (Ninguno con fecha futura asignada)',
-    ].join('\n');
+    return ['RESUMEN FINANCIERO ACTUAL:', 'Total acumulado: $' + grandTotal.toFixed(2), 'Total pagado: $' + grandPaid.toFixed(2), 'Total pendiente: $' + grandPending.toFixed(2), '', 'DESGLOSE POR CATEGORÍA:', lines.join('\n'), '', 'PRÓXIMOS PAGOS PENDIENTES:', futureLines.length > 0 ? futureLines.join('\n') : '  (Ninguno con fecha futura asignada)'].join('\n');
 }
 
 function setAILoading(on) {
     document.getElementById('ai-placeholder').classList.add('hidden');
     document.getElementById('ai-response').classList.add('hidden');
     document.getElementById('ai-loading').classList[on ? 'remove' : 'add']('hidden');
-    var btn   = document.getElementById('ai-run-btn');
-    var icon  = document.getElementById('ai-btn-icon');
+    var btn = document.getElementById('ai-run-btn');
+    var icon = document.getElementById('ai-btn-icon');
     var label = document.getElementById('ai-btn-label');
     btn.disabled = on;
-    if (on) {
-        label.textContent = 'ANALIZANDO';
-        icon.style.opacity = '0.4';
-    } else {
-        label.textContent = 'ANALIZAR';
-        icon.style.opacity = '1';
-    }
+    if (on) { label.textContent = 'ANALIZANDO'; icon.style.opacity = '0.4'; }
+    else    { label.textContent = 'ANALIZAR'; icon.style.opacity = '1'; }
 }
 
 function renderAIResponse(text) {
@@ -1509,7 +1416,6 @@ function renderAIResponse(text) {
     lines.forEach(function(line) {
         line = line.trim();
         if (!line) { flushBuffer(); return; }
-
         if (/^\*\*.*\*\*/.test(line) || (/^[A-ZÁÉÍÓÚÑ\s]+:$/.test(line) && line.length < 50)) {
             flushBuffer();
             var h = document.createElement('p');
@@ -1518,7 +1424,6 @@ function renderAIResponse(text) {
             respEl.appendChild(h);
             return;
         }
-
         if (/^[•\-\*]\s/.test(line) || /^\d+\.\s/.test(line)) {
             flushBuffer();
             var bWrap = document.createElement('div');
@@ -1533,60 +1438,19 @@ function renderAIResponse(text) {
             respEl.appendChild(bWrap);
             return;
         }
-
         buffer.push(line.replace(/\*\*/g, ''));
     });
     flushBuffer();
 }
-
-function callGroqAPI(prompt, systemPrompt) {
-    return fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + GROQ_KEY
-        },
-        body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user',   content: prompt }
-            ],
-            max_tokens: 1024,
-            temperature: 0.7
-        })
-    }).then(function(r) {
-        if (!r.ok) return r.json().then(function(e) {
-            var msg = e.error ? e.error.message : ('HTTP ' + r.status);
-            if (r.status === 401) { setApiStatusDot(false); throw new Error('API Key inválida o expirada. Haz clic en el ícono ✏️ del encabezado para actualizarla.'); }
-            if (r.status === 429) { throw new Error('Límite de uso alcanzado. Espera un momento e intenta de nuevo.'); }
-            throw new Error(msg);
-        });
-        return r.json();
-    }).then(function(d) {
-        if (d.choices && d.choices[0] && d.choices[0].message) {
-            return d.choices[0].message.content;
-        }
-        if (d.error) throw new Error(d.error.message);
-        throw new Error('Sin respuesta del asesor IA');
-    });
-}
-
-// Alias para compatibilidad con código existente
-var callGeminiAPI = callGroqAPI;
 
 function runAIAnalysis() {
     setAILoading(true);
     var summary = buildFinancialSummary();
     var system = 'Eres un asesor financiero personal. Analizas los datos financieros del usuario y das consejos claros, directos y accionables en español. Sé conciso pero útil. Usa bullets para los consejos. No uses frases genéricas. Basa TODO en los números reales del usuario.';
     var prompt = summary + '\n\nAnaliza esta situación financiera y dame:\n1. Un diagnóstico rápido (2-3 líneas)\n2. Los 3-5 consejos más importantes y accionables para mejorar mi economía\n3. Una alerta sobre el pago más urgente si aplica';
-
-    callGroqAPI(prompt, system)
+    callAI(prompt, system)
         .then(function(text) { renderAIResponse(text); })
-        .catch(function(e) {
-            setAILoading(false);
-            renderAIResponse('No se pudo conectar con el asesor IA. Verifica tu conexión e intenta de nuevo.\n\n' + (e.message || ''));
-        });
+        .catch(function(e) { setAILoading(false); renderAIResponse('No se pudo conectar con el asesor IA.\n\n' + (e.message || '')); });
 }
 
 function askAI() {
@@ -1595,30 +1459,259 @@ function askAI() {
     document.getElementById('ai-question').value = '';
     setAILoading(true);
     var summary = buildFinancialSummary();
-    var system = 'Eres un asesor financiero personal. El usuario te hace preguntas sobre sus finanzas. Responde en español, de forma directa y práctica. Basa tus respuestas en los datos reales del usuario.';
+    var system = 'Eres un asesor financiero personal. El usuario te hace preguntas sobre sus finanzas. Responde en español, de forma directa y práctica.';
     var prompt = 'Mis datos financieros actuales:\n\n' + summary + '\n\nMi pregunta: ' + q;
-
-    callGroqAPI(prompt, system)
+    callAI(prompt, system)
         .then(function(text) { renderAIResponse(text); })
-        .catch(function(e) {
-            setAILoading(false);
-            renderAIResponse('Error al conectar con el asesor IA. Intenta de nuevo.\n\n' + (e.message || ''));
-        });
+        .catch(function(e) { setAILoading(false); renderAIResponse('Error al conectar.\n\n' + (e.message || '')); });
 }
 
-// ─── PERFIL ───────────────────────────────────────────────────────────────────
-// ── Profile modal tab switching ───────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// FIX #2 — INVOICE ANALYSIS: Uses Anthropic Claude API (Vision) for accuracy
+// ══════════════════════════════════════════════════════════════════════════════
+var invoiceFile = null, invoiceBase64 = null, invoiceMediaType = null;
+
+function handleInvoiceFile(input) {
+    var file = input.files[0];
+    if (!file) return;
+    invoiceFile = file;
+    invoiceBase64 = null;
+    invoiceMediaType = file.type;
+
+    var zone     = document.getElementById('invoice-zone');
+    var imgWrap  = document.getElementById('invoice-img-wrap');
+    var pdfWrap  = document.getElementById('invoice-pdf-wrap');
+    var attachBtn = document.getElementById('attach-btn');
+
+    zone.classList.remove('hidden');
+    clearInvoiceResult();
+    attachBtn.classList.add('has-file');
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        invoiceBase64 = e.target.result.split(',')[1];
+        if (file.type.startsWith('image/')) {
+            document.getElementById('invoice-img-preview').src = e.target.result;
+            imgWrap.classList.remove('hidden');
+            pdfWrap.classList.add('hidden');
+        } else {
+            imgWrap.classList.add('hidden');
+            pdfWrap.classList.remove('hidden');
+            document.getElementById('invoice-pdf-name').textContent = file.name;
+        }
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+}
+
+function clearInvoiceFile() {
+    invoiceFile = invoiceBase64 = invoiceMediaType = null;
+    document.getElementById('invoice-zone').classList.add('hidden');
+    document.getElementById('invoice-img-wrap').classList.add('hidden');
+    document.getElementById('invoice-pdf-wrap').classList.add('hidden');
+    document.getElementById('invoice-img-preview').src = '';
+    document.getElementById('attach-btn').classList.remove('has-file');
+    clearInvoiceResult();
+}
+
+function clearInvoiceResult() {
+    document.getElementById('invoice-result').classList.add('hidden');
+    document.getElementById('ext-concept').value = '';
+    document.getElementById('ext-date').value = '';
+    document.getElementById('ext-amount').value = '';
+}
+
+// Extracts a reliable date string from various formats the AI might return
+function normalizeDate(rawDate) {
+    if (!rawDate) return getTodayStr();
+    // Already YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate.trim())) return rawDate.trim();
+    // Try to parse other formats
+    try {
+        var d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
+    } catch(e) {}
+    // MM/DD/YYYY
+    var m1 = rawDate.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (m1) {
+        var y = m1[3].length === 2 ? '20' + m1[3] : m1[3];
+        return y + '-' + m1[1].padStart(2,'0') + '-' + m1[2].padStart(2,'0');
+    }
+    return getTodayStr();
+}
+
+function getTodayStr() {
+    var now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+}
+
+// Robust JSON extractor — handles markdown fences, extra text, etc.
+function extractJSON(raw) {
+    if (!raw) return null;
+    // Remove markdown code fences
+    raw = raw.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+    // Try direct parse
+    try { return JSON.parse(raw); } catch(e) {}
+    // Find JSON object in text
+    var match = raw.match(/\{[\s\S]*?\}/);
+    if (match) { try { return JSON.parse(match[0]); } catch(e) {} }
+    // Last resort: extract key values manually
+    var concepto = (raw.match(/"concepto"\s*:\s*"([^"]+)"/i) || [])[1] || '';
+    var fecha    = (raw.match(/"fecha"\s*:\s*"([^"]+)"/i)    || [])[1] || '';
+    var monto    = parseFloat((raw.match(/"monto"\s*:\s*([\d.]+)/i) || [])[1] || '0');
+    if (concepto || monto) return { concepto, fecha, monto };
+    return null;
+}
+
+// ── Main invoice analysis — uses Anthropic Claude (Vision) first, Groq fallback ──
+function analyzeInvoice() {
+    if (!invoiceBase64) { showToast('Espera a que cargue el archivo', 'red'); return; }
+
+    setAILoading(true);
+    clearInvoiceResult();
+
+    var today = getTodayStr();
+    var systemPrompt = 'Eres un experto en extracción de datos de facturas y recibos. Analiza el documento y devuelve ÚNICAMENTE un objeto JSON con exactamente estas tres claves, sin texto adicional, sin bloques de código markdown:\n{"concepto":"descripción corta del producto o servicio (máx 50 caracteres)","fecha":"YYYY-MM-DD (fecha exacta del documento, NO la fecha de hoy a menos que sea la única disponible)","monto":123.45 (número decimal, el TOTAL final a pagar, sin símbolo de moneda)}\nIMPORTANTE: El monto debe ser el TOTAL real de la factura. La fecha debe ser la fecha impresa en el documento en formato YYYY-MM-DD.';
+
+    // ── Strategy 1: Anthropic Claude Vision API (most accurate) ──────────────
+    var anthropicPromise = function() {
+        if (!invoiceMediaType || !invoiceMediaType.startsWith('image/')) return Promise.reject(new Error('not image'));
+
+        var contentBlocks = [
+            { type: 'image', source: { type: 'base64', media_type: invoiceMediaType, data: invoiceBase64 } },
+            { type: 'text', text: 'Analiza esta factura/recibo con detalle. Extrae: (1) el concepto o descripción principal, (2) la fecha EXACTA que aparece impresa en el documento en formato YYYY-MM-DD, y (3) el monto TOTAL a pagar como número decimal. Responde SOLO con el JSON solicitado.' }
+        ];
+
+        return fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 300,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: contentBlocks }]
+            })
+        }).then(function(r) {
+            if (!r.ok) return r.json().then(function(e) { throw new Error('Anthropic: ' + (e.error ? e.error.message : 'HTTP ' + r.status)); });
+            return r.json();
+        }).then(function(d) {
+            var text = (d.content && d.content[0] && d.content[0].text) ? d.content[0].text : '';
+            var parsed = extractJSON(text);
+            if (!parsed) throw new Error('Anthropic: JSON inválido');
+            return parsed;
+        });
+    };
+
+    // ── Strategy 2: Groq with vision model (fallback) ─────────────────────────
+    var groqVisionPromise = function() {
+        if (!invoiceMediaType || !invoiceMediaType.startsWith('image/')) return Promise.reject(new Error('not image'));
+        var groqKey = userApiKeys.groq || GROQ_KEY_DEFAULT;
+        if (!groqKey) return Promise.reject(new Error('no groq key'));
+
+        return fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey },
+            body: JSON.stringify({
+                model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+                max_tokens: 300,
+                temperature: 0.1,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: [
+                        { type: 'image_url', image_url: { url: 'data:' + invoiceMediaType + ';base64,' + invoiceBase64 } },
+                        { type: 'text', text: 'Extrae concepto, fecha exacta del documento y monto total. Solo JSON.' }
+                    ]}
+                ]
+            })
+        }).then(function(r) {
+            if (!r.ok) return r.json().then(function(e) { throw new Error('Groq vision: ' + (e.error ? e.error.message : 'HTTP ' + r.status)); });
+            return r.json();
+        }).then(function(d) {
+            var text = (d.choices && d.choices[0] && d.choices[0].message) ? d.choices[0].message.content : '';
+            var parsed = extractJSON(text);
+            if (!parsed) throw new Error('Groq vision: JSON inválido');
+            return parsed;
+        });
+    };
+
+    // ── Strategy 3: Text-based AI for PDFs or if vision fails ────────────────
+    var textFallbackPromise = function() {
+        var fileName = invoiceFile ? invoiceFile.name : 'documento';
+        var prompt = 'Tengo una factura llamada "' + fileName + '". Como no tengo su contenido visible, ayúdame con un JSON de ejemplo que luego editaré manualmente. Usa valores razonables basados en el nombre del archivo. La fecha debe ser hoy: ' + today + '. Responde SOLO con el JSON solicitado.';
+        return callAI(prompt, systemPrompt).then(function(text) {
+            var parsed = extractJSON(text);
+            if (!parsed) throw new Error('text fallback: JSON inválido');
+            return parsed;
+        });
+    };
+
+    // ── Run strategies in order: Anthropic → Groq Vision → Text fallback ─────
+    var runChain = anthropicPromise()
+        .catch(function(e) {
+            console.log('Anthropic vision failed:', e.message, '— trying Groq vision');
+            return groqVisionPromise();
+        })
+        .catch(function(e) {
+            console.log('Groq vision failed:', e.message, '— using text fallback');
+            return textFallbackPromise();
+        });
+
+    runChain.then(function(data) {
+        setAILoading(false);
+
+        var concepto = String(data.concepto || '').substring(0, 80);
+        var fecha    = normalizeDate(data.fecha || data.date || '');
+        var monto    = parseFloat(data.monto || data.amount || data.total || 0);
+
+        // Sanity check: monto should be positive
+        if (monto <= 0) {
+            // Try to find any number in the response that could be the amount
+            var rawStr = JSON.stringify(data);
+            var numbers = rawStr.match(/\b\d{1,6}\.\d{2}\b/g);
+            if (numbers && numbers.length > 0) monto = parseFloat(numbers[numbers.length - 1]);
+        }
+
+        document.getElementById('ext-concept').value = concepto || (invoiceFile ? invoiceFile.name.replace(/\.[^/.]+$/, '') : 'Factura');
+        document.getElementById('ext-date').value    = fecha;
+        document.getElementById('ext-amount').value  = monto.toFixed(2);
+        document.getElementById('invoice-result').classList.remove('hidden');
+
+        renderAIResponse('📄 **Factura analizada:**\n\n• Concepto: ' + (concepto || '—') + '\n• Fecha: ' + fecha + '\n• Monto: $' + monto.toFixed(2) + '\n\nRevisa los datos y ajusta si es necesario, luego presiona "Agregar al Dashboard".');
+    }).catch(function(e) {
+        setAILoading(false);
+        // Even on complete failure, give user an editable form
+        document.getElementById('ext-concept').value = invoiceFile ? invoiceFile.name.replace(/\.[^/.]+$/, '') : 'Factura';
+        document.getElementById('ext-date').value    = today;
+        document.getElementById('ext-amount').value  = '0.00';
+        document.getElementById('invoice-result').classList.remove('hidden');
+        renderAIResponse('⚠️ No pude leer el archivo automáticamente (' + (e.message || '') + '). Completa los datos manualmente.');
+    });
+}
+
+function addInvoiceToTab() {
+    if (!activeTab) { showToast('Selecciona una pestaña primero', 'red'); return; }
+    var concept = document.getElementById('ext-concept').value.trim();
+    var date    = document.getElementById('ext-date').value;
+    var amount  = parseFloat(document.getElementById('ext-amount').value || 0);
+    if (!concept) { showToast('Escribe un concepto', 'red'); return; }
+    if (!date)    { showToast('Selecciona una fecha', 'red'); return; }
+    if (amount <= 0) { showToast('El monto debe ser mayor a 0', 'red'); return; }
+    if (!localData.db[activeTab]) localData.db[activeTab] = [];
+    localData.db[activeTab].push({ c: concept, f: date, m: amount, p: false });
+    renderTable(); renderCalendar(); updateCharts(); saveCurrentData(true);
+    showToast('✅ Factura agregada a "' + activeTab + '"', 'blue');
+    clearInvoiceFile(); clearInvoiceResult();
+}
+
+// ─── PERFIL ────────────────────────────────────────────────────────────────────
 function profileTab(id) {
     ['info','keys','danger'].forEach(function(t) {
         document.getElementById('ppanel-' + t).style.display = t === id ? 'block' : 'none';
         var btn = document.getElementById('ptab-' + t);
-        if (t === id) {
-            btn.style.borderBottomColor = '#3b82f6';
-            btn.style.color = '#60a5fa';
-        } else {
-            btn.style.borderBottomColor = 'transparent';
-            btn.style.color = '#475569';
-        }
+        if (t === id) { btn.style.borderBottomColor = '#3b82f6'; btn.style.color = '#60a5fa'; }
+        else          { btn.style.borderBottomColor = 'transparent'; btn.style.color = '#475569'; }
     });
     if (id === 'keys') renderProviderCards();
 }
@@ -1635,76 +1728,37 @@ function toggleProfileOptions(show) {
     }
 }
 
-// ── Render provider cards in Keys tab ─────────────────────────────────────
 function renderProviderCards() {
-    // Selector buttons
     var selWrap = document.getElementById('provider-selector-btns');
     selWrap.innerHTML = '';
     AI_PROVIDERS.forEach(function(p) {
         var isActive = userApiKeys.active === p.id;
-        var hasKey   = p.id === 'custom'
-            ? !!(userApiKeys.custom && userApiKeys.custom.key)
-            : !!userApiKeys[p.id];
+        var hasKey   = p.id === 'custom' ? !!(userApiKeys.custom && userApiKeys.custom.key) : !!userApiKeys[p.id];
         var btn = document.createElement('button');
-        btn.id = 'provsel-' + p.id;
         btn.textContent = p.logo + ' ' + p.name;
         btn.style.cssText = 'padding:0.4rem 0.9rem;border-radius:2rem;font-size:0.72rem;font-weight:800;cursor:pointer;transition:all 0.2s;border:2px solid ' +
             (isActive ? p.color : (hasKey ? 'rgba(255,255,255,0.15)' : '#1e293b')) + ';' +
             'background:' + (isActive ? p.color + '22' : 'transparent') + ';' +
             'color:' + (isActive ? p.color : (hasKey ? '#94a3b8' : '#334155')) + ';';
-        btn.onclick = function() {
-            userApiKeys.active = p.id;
-            renderProviderCards();
-        };
+        btn.onclick = function() { userApiKeys.active = p.id; renderProviderCards(); };
         selWrap.appendChild(btn);
     });
 
-    // Provider cards
     var wrap = document.getElementById('provider-cards-wrap');
     wrap.innerHTML = '';
     AI_PROVIDERS.forEach(function(p) {
         var isCustom = p.id === 'custom';
         var currentKey = isCustom ? (userApiKeys.custom ? userApiKeys.custom.key : '') : (userApiKeys[p.id] || '');
         var isActive = userApiKeys.active === p.id;
+        var customFields = isCustom ? ('<div style="display:flex;gap:0.5rem;margin-top:0.5rem;"><input id="prov-custom-endpoint" type="text" placeholder="https://tu-endpoint/v1/chat/completions" value="' + ((userApiKeys.custom && userApiKeys.custom.endpoint) || '') + '" style="flex:2;background:#1e293b;border:1px solid #334155;border-radius:0.5rem;padding:0.6rem 0.75rem;color:white;font-size:0.72rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'"><input id="prov-custom-model" type="text" placeholder="gpt-3.5-turbo" value="' + ((userApiKeys.custom && userApiKeys.custom.model) || '') + '" style="flex:1;background:#1e293b;border:1px solid #334155;border-radius:0.5rem;padding:0.6rem 0.75rem;color:white;font-size:0.72rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'"></div>') : '';
 
         var card = document.createElement('div');
-        card.style.cssText = 'background:#0f172a;border:1px solid ' + (isActive ? p.color + '44' : '#1e293b') + ';border-radius:1rem;padding:1rem 1.25rem;transition:border-color 0.2s;';
-
-        var customFields = isCustom ? ('<div style="display:flex;gap:0.5rem;margin-top:0.5rem;">' +
-            '<input id="prov-custom-endpoint" type="text" placeholder="https://tu-endpoint/v1/chat/completions" ' +
-            'value="' + ((userApiKeys.custom && userApiKeys.custom.endpoint) || '') + '" ' +
-            'style="flex:2;background:#1e293b;border:1px solid #334155;border-radius:0.5rem;padding:0.6rem 0.75rem;color:white;font-size:0.72rem;outline:none;box-sizing:border-box;" ' +
-            'onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'">' +
-            '<input id="prov-custom-model" type="text" placeholder="gpt-3.5-turbo" ' +
-            'value="' + ((userApiKeys.custom && userApiKeys.custom.model) || '') + '" ' +
-            'style="flex:1;background:#1e293b;border:1px solid #334155;border-radius:0.5rem;padding:0.6rem 0.75rem;color:white;font-size:0.72rem;outline:none;box-sizing:border-box;" ' +
-            'onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'">' +
-            '</div>') : '';
-
+        card.style.cssText = 'background:#0f172a;border:1px solid ' + (isActive ? p.color + '44' : '#1e293b') + ';border-radius:1rem;padding:1rem 1.25rem;';
         card.innerHTML =
-            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">' +
-                '<div style="display:flex;align-items:center;gap:0.6rem;">' +
-                    '<span style="font-size:1.1rem;">' + p.logo + '</span>' +
-                    '<div>' +
-                        '<p style="color:white;font-size:0.8rem;font-weight:800;margin:0;">' + p.name + (isActive ? ' <span style="font-size:0.6rem;background:' + p.color + '33;color:' + p.color + ';padding:1px 6px;border-radius:99px;vertical-align:middle;">ACTIVO</span>' : '') + '</p>' +
-                        '<a href="' + (p.hintUrl || '#') + '" target="_blank" style="color:#475569;font-size:0.62rem;text-decoration:none;" onmouseover="this.style.color=\'#60a5fa\'" onmouseout="this.style.color=\'#475569\'">' + p.hint + '</a>' +
-                    '</div>' +
-                '</div>' +
-                '<span id="prov-status-' + p.id + '" style="font-size:0.65rem;font-weight:700;"></span>' +
-            '</div>' +
-            '<div style="display:flex;gap:0.5rem;align-items:center;">' +
-                '<div style="position:relative;flex:1;">' +
-                    '<input id="prov-key-' + p.id + '" type="password" placeholder="' + p.placeholder + '" value="' + currentKey + '" ' +
-                    'style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:0.6rem;padding:0.65rem 2.4rem 0.65rem 0.85rem;color:white;font-size:0.8rem;font-family:monospace;outline:none;box-sizing:border-box;" ' +
-                    'onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'">' +
-                    '<button onclick="toggleProvKeyVis(\'' + p.id + '\')" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#475569;padding:2px;line-height:0;" title="Ver/ocultar">' +
-                        '<svg id="prov-eye-' + p.id + '" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
-                    '</button>' +
-                '</div>' +
-                '<button onclick="testSingleProvider(\'' + p.id + '\')" style="padding:0.65rem 0.9rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:0.6rem;color:#94a3b8;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap;" id="prov-test-btn-' + p.id + '">Probar</button>' +
-            '</div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;"><div style="display:flex;align-items:center;gap:0.6rem;"><span style="font-size:1.1rem;">' + p.logo + '</span><div><p style="color:white;font-size:0.8rem;font-weight:800;margin:0;">' + p.name + (isActive ? ' <span style="font-size:0.6rem;background:' + p.color + '33;color:' + p.color + ';padding:1px 6px;border-radius:99px;">ACTIVO</span>' : '') + '</p><a href="' + (p.hintUrl || '#') + '" target="_blank" style="color:#475569;font-size:0.62rem;text-decoration:none;">' + p.hint + '</a></div></div><span id="prov-status-' + p.id + '" style="font-size:0.65rem;font-weight:700;"></span></div>' +
+            '<div style="display:flex;gap:0.5rem;align-items:center;"><div style="position:relative;flex:1;"><input id="prov-key-' + p.id + '" type="password" placeholder="' + p.placeholder + '" value="' + currentKey + '" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:0.6rem;padding:0.65rem 2.4rem 0.65rem 0.85rem;color:white;font-size:0.8rem;font-family:monospace;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor=\'#3b82f6\'" onblur="this.style.borderColor=\'#334155\'"><button onclick="toggleProvKeyVis(\'' + p.id + '\')" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#475569;padding:2px;line-height:0;"><svg id="prov-eye-' + p.id + '" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>' +
+            '<button onclick="testSingleProvider(\'' + p.id + '\')" style="padding:0.65rem 0.9rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:0.6rem;color:#94a3b8;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap;" id="prov-test-btn-' + p.id + '">Probar</button></div>' +
             customFields;
-
         wrap.appendChild(card);
     });
 }
@@ -1713,13 +1767,8 @@ function toggleProvKeyVis(pid) {
     var inp = document.getElementById('prov-key-' + pid);
     var ico = document.getElementById('prov-eye-' + pid);
     if (!inp) return;
-    if (inp.type === 'password') {
-        inp.type = 'text';
-        ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
-    } else {
-        inp.type = 'password';
-        ico.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-    }
+    if (inp.type === 'password') { inp.type = 'text'; ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'; }
+    else { inp.type = 'password'; ico.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'; }
 }
 
 function testSingleProvider(pid) {
@@ -1728,37 +1777,17 @@ function testSingleProvider(pid) {
     var key = keyInp.value.trim();
     var statusEl = document.getElementById('prov-status-' + pid);
     var btn = document.getElementById('prov-test-btn-' + pid);
-
-    if (pid === 'custom') {
-        var ep = (document.getElementById('prov-custom-endpoint') || {}).value || '';
-        var mo = (document.getElementById('prov-custom-model') || {}).value || '';
-        if (!ep) { statusEl.innerHTML = '<span style="color:#fca5a5;">⚠ Falta endpoint</span>'; return; }
-    }
-
+    if (pid === 'custom') { var ep = (document.getElementById('prov-custom-endpoint') || {}).value || ''; if (!ep) { statusEl.innerHTML = '<span style="color:#fca5a5;">⚠ Falta endpoint</span>'; return; } }
     if (!key) { statusEl.innerHTML = '<span style="color:#fca5a5;">⚠ Sin clave</span>'; return; }
-
-    var tempKeys = JSON.parse(JSON.stringify(userApiKeys));
-    if (pid === 'custom') {
-        tempKeys.custom = { key: key, endpoint: (document.getElementById('prov-custom-endpoint') || {}).value || '', model: (document.getElementById('prov-custom-model') || {}).value || '' };
-    } else {
-        tempKeys[pid] = key;
-    }
-
     statusEl.innerHTML = '<span style="color:#94a3b8;">⏳ Probando...</span>';
     btn.disabled = true;
-
     testProvider(pid, key)
-        .then(function() {
-            statusEl.innerHTML = '<span style="color:#6ee7b7;">✅ Válida</span>';
-        })
-        .catch(function(e) {
-            statusEl.innerHTML = '<span style="color:#fca5a5;" title="' + (e.message||'') + '">❌ Inválida</span>';
-        })
+        .then(function() { statusEl.innerHTML = '<span style="color:#6ee7b7;">✅ Válida</span>'; })
+        .catch(function(e) { statusEl.innerHTML = '<span style="color:#fca5a5;" title="' + (e.message||'') + '">❌ Inválida</span>'; })
         .finally(function() { btn.disabled = false; });
 }
 
 function saveAllApiKeys() {
-    // Recoger todas las claves del formulario
     AI_PROVIDERS.forEach(function(p) {
         var inp = document.getElementById('prov-key-' + p.id);
         if (!inp) return;
@@ -1767,22 +1796,15 @@ function saveAllApiKeys() {
             var ep = (document.getElementById('prov-custom-endpoint') || {}).value || '';
             var mo = (document.getElementById('prov-custom-model') || {}).value || '';
             userApiKeys.custom = { key: val, endpoint: ep, model: mo };
-        } else {
-            userApiKeys[p.id] = val;
-        }
+        } else { userApiKeys[p.id] = val; }
     });
-    // Actualizar alias de compatibilidad
     GROQ_KEY = userApiKeys.groq || GROQ_KEY_DEFAULT;
-    // Guardar
     if (currentUser) saveUserApiKeys(currentUser.id);
-    // Feedback
     var msg = document.getElementById('keys-save-msg');
-    msg.style.display = 'block';
-    msg.style.color = '#6ee7b7';
-    msg.textContent = '✅ Claves guardadas correctamente. Proveedor activo: ' + (AI_PROVIDERS.find(function(p) { return p.id === userApiKeys.active; }) || {name: userApiKeys.active}).name;
+    msg.style.display = 'block'; msg.style.color = '#6ee7b7';
+    msg.textContent = '✅ Claves guardadas. Proveedor activo: ' + (AI_PROVIDERS.find(function(p) { return p.id === userApiKeys.active; }) || {name:''}).name;
     setTimeout(function() { msg.style.display = 'none'; }, 3000);
-    setApiStatusDot(true);
-    renderProviderCards();
+    setApiStatusDot(true); renderProviderCards();
 }
 
 function renameCurrentProfile() {
@@ -1801,9 +1823,9 @@ function renameCurrentProfile() {
                     .then(function() { return fb.setDoc(newDataRef, localData); })
                     .then(function() { return fb.deleteDoc(oldProfileRef); })
                     .then(function() { return fb.deleteDoc(oldDataRef); })
-                    .then(function() { alert("Perfil renombrado con éxito. Reiniciando sesión..."); location.reload(); });
+                    .then(function() { alert("Perfil renombrado. Reiniciando..."); location.reload(); });
             });
-        }).catch(function(e) { console.error(e); showToast("Error al renombrar", "red"); });
+        }).catch(function() { showToast("Error al renombrar", "red"); });
     } else {
         var oldKey = 'fm_profile_' + currentUser.id;
         var newKey = 'fm_profile_' + newName;
@@ -1817,7 +1839,7 @@ function renameCurrentProfile() {
 }
 
 function deleteCurrentProfile() {
-    if (!confirm("⚠️ ¿BORRAR PERMANENTEMENTE este perfil y TODOS sus datos? Esta acción no se puede deshacer.")) return;
+    if (!confirm("⚠️ ¿BORRAR PERMANENTEMENTE este perfil y TODOS sus datos?")) return;
     var fb = window._fb || {};
     if (fb.firebaseReady) {
         fb.deleteDoc(fb.doc(fb.db, 'artifacts', fb.appId, 'public', 'data', 'finance_profiles_' + currentUser.id))
@@ -1832,37 +1854,17 @@ function deleteCurrentProfile() {
 }
 
 // ─── CALENDARIO ──────────────────────────────────────────────────────────────
-var calYear   = new Date().getFullYear();
-var calMonth  = new Date().getMonth();
-var calSelDay = null;
-
-var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-             'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), calSelDay = null;
+var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var DIAS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
-function calNav(dir) {
-    calMonth += dir;
-    if (calMonth > 11) { calMonth = 0; calYear++; }
-    if (calMonth < 0)  { calMonth = 11; calYear--; }
-    calSelDay = null;
-    document.getElementById('cal-detail').classList.add('hidden');
-    renderCalendar();
-}
-
-function calGoToday() {
-    var now = new Date();
-    calYear = now.getFullYear(); calMonth = now.getMonth();
-    calSelDay = null;
-    document.getElementById('cal-detail').classList.add('hidden');
-    renderCalendar();
-}
+function calNav(dir) { calMonth += dir; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; } calSelDay = null; document.getElementById('cal-detail').classList.add('hidden'); renderCalendar(); }
+function calGoToday() { var now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); calSelDay = null; document.getElementById('cal-detail').classList.add('hidden'); renderCalendar(); }
 
 function getItemsByDate() {
     var map = {};
-    var selTab = (document.getElementById('hist-tab-select') || {}).value || '__ALL__';
     if (!localData || !localData.db) return map;
     Object.keys(localData.db).forEach(function(tab) {
-        if (selTab !== '__ALL__' && tab !== selTab) return;
         (localData.db[tab] || []).forEach(function(item) {
             if (!item.f) return;
             if (!map[item.f]) map[item.f] = [];
@@ -1874,36 +1876,16 @@ function getItemsByDate() {
 
 function renderCalendar() {
     if (!document.getElementById('cal-grid')) return;
-
-    var sel = document.getElementById('hist-tab-select');
-    var prevVal = sel ? sel.value : '__ALL__';
-    if (sel) {
-        sel.innerHTML = '<option value="__ALL__">Todas</option>';
-        if (localData && localData.db) {
-            Object.keys(localData.db).forEach(function(tab) {
-                var opt = document.createElement('option');
-                opt.value = tab; opt.textContent = tab;
-                if (tab === prevVal) opt.selected = true;
-                sel.appendChild(opt);
-            });
-        }
-    }
-
     document.getElementById('cal-month-label').innerText = MESES[calMonth] + ' ' + calYear;
 
     var byDate = getItemsByDate();
-    var todayStr = (function() {
-        var t = new Date();
-        return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
-    })();
+    var todayStr = getTodayStr();
     var monthPfx = calYear + '-' + String(calMonth+1).padStart(2,'0');
 
     var total = 0, paid = 0, countMes = 0;
     Object.keys(byDate).forEach(function(ds) {
         if (!ds.startsWith(monthPfx)) return;
-        byDate[ds].forEach(function(r) {
-            var v = parseFloat(r.item.m || 0); total += v; if (r.item.p) paid += v; countMes++;
-        });
+        byDate[ds].forEach(function(r) { var v = parseFloat(r.item.m || 0); total += v; if (r.item.p) paid += v; countMes++; });
     });
     var fmtN = function(n) { return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2}); };
     document.getElementById('hist-sum-total').innerText   = fmtN(total);
@@ -1916,62 +1898,38 @@ function renderCalendar() {
     var firstDay    = new Date(calYear, calMonth, 1).getDay();
     var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
 
-    for (var e = 0; e < firstDay; e++) {
-        var empty = document.createElement('div');
-        empty.className = 'cal-cell cal-empty';
-        grid.appendChild(empty);
-    }
+    for (var e = 0; e < firstDay; e++) { var empty = document.createElement('div'); empty.className = 'cal-cell cal-empty'; grid.appendChild(empty); }
 
     for (var day = 1; day <= daysInMonth; day++) {
         var ds = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
         var rows = byDate[ds] || [];
-
         var cell = document.createElement('div');
         var cls = 'cal-cell';
-        if (ds === todayStr)  cls += ' cal-today';
+        if (ds === todayStr) cls += ' cal-today';
         if (ds === calSelDay) cls += ' cal-selected';
         cell.className = cls;
-
         var dayNum = document.createElement('div');
         dayNum.className = 'cal-day-num';
         dayNum.textContent = day;
         cell.appendChild(dayNum);
-
         if (rows.length > 0) {
             var dotWrap = document.createElement('div');
             dotWrap.className = 'cal-dot-wrap';
             var shown = Math.min(rows.length, 3);
-            for (var di = 0; di < shown; di++) {
-                var dot = document.createElement('div');
-                dot.className = 'cal-dot ' + (rows[di].item.p ? 'paid' : 'pending');
-                dotWrap.appendChild(dot);
-            }
+            for (var di = 0; di < shown; di++) { var dot = document.createElement('div'); dot.className = 'cal-dot ' + (rows[di].item.p ? 'paid' : 'pending'); dotWrap.appendChild(dot); }
             cell.appendChild(dotWrap);
         }
-
-        (function(dateStr, r) {
-            cell.addEventListener('click', function() {
-                calSelDay = dateStr;
-                renderCalendar();
-                showDayDetail(dateStr, r);
-            });
-        })(ds, rows);
-
+        (function(dateStr, r) { cell.addEventListener('click', function() { calSelDay = dateStr; renderCalendar(); showDayDetail(dateStr, r); }); })(ds, rows);
         grid.appendChild(cell);
     }
-
     renderHistList(byDate, monthPfx);
-
-    if (calSelDay && byDate[calSelDay]) {
-        showDayDetail(calSelDay, byDate[calSelDay]);
-    }
+    if (calSelDay && byDate[calSelDay]) showDayDetail(calSelDay, byDate[calSelDay]);
 }
 
 function renderHistList(byDate, monthPfx) {
-    var listEl    = document.getElementById('hist-list');
-    var titleEl   = document.getElementById('hist-list-title');
-    var countEl   = document.getElementById('hist-list-count');
-
+    var listEl  = document.getElementById('hist-list');
+    var titleEl = document.getElementById('hist-list-title');
+    var countEl = document.getElementById('hist-list-count');
     var rows = [];
     if (calSelDay) {
         titleEl.innerText = 'Día seleccionado';
@@ -1983,59 +1941,27 @@ function renderHistList(byDate, monthPfx) {
             byDate[ds].forEach(function(r) { rows.push({ ds: ds, r: r }); });
         });
     }
-
     countEl.innerText = rows.length;
     listEl.innerHTML = '';
-
-    if (rows.length === 0) {
-        listEl.innerHTML = '<div class="flex items-center justify-center py-10 text-slate-600 text-xs italic font-bold">Sin transacciones</div>';
-        return;
-    }
-
+    if (rows.length === 0) { listEl.innerHTML = '<div class="flex items-center justify-center py-10 text-slate-600 text-xs italic font-bold">Sin transacciones</div>'; return; }
     rows.forEach(function(entry) {
-        var ds   = entry.ds;
-        var r    = entry.r;
-        var item = r.item;
-
-        var dt   = new Date(ds + 'T12:00:00');
-        var row  = document.createElement('div');
+        var ds = entry.ds, r = entry.r, item = r.item;
+        var dt = new Date(ds + 'T12:00:00');
+        var row = document.createElement('div');
         row.className = 'flex items-center gap-3 px-4 py-2.5 hover:bg-slate-800/50 transition-all ' + (item.p ? 'opacity-40' : '');
-
         var dateBox = document.createElement('div');
         dateBox.className = 'flex-shrink-0 w-10 text-center';
-        dateBox.innerHTML =
-            '<p class="text-base font-black text-white leading-none">' + dt.getDate() + '</p>' +
-            '<p class="text-[9px] font-bold text-slate-500 uppercase">' + MESES[dt.getMonth()].slice(0,3) + '</p>';
-
-        var sep = document.createElement('div');
-        sep.className = 'w-px h-8 bg-slate-800 flex-shrink-0';
-
-        var info = document.createElement('div');
-        info.className = 'flex-1 min-w-0';
-        var name = document.createElement('p');
-        name.className = 'text-xs font-bold text-slate-200 truncate ' + (item.p ? 'line-through' : '');
-        name.textContent = item.c;
-        var meta = document.createElement('p');
-        meta.className = 'text-[9px] font-bold text-slate-600 uppercase tracking-wider mt-0.5';
-        meta.textContent = r.tab;
-        info.appendChild(name);
-        info.appendChild(meta);
-
-        var amt = document.createElement('div');
-        amt.className = 'flex-shrink-0 text-right';
-        var amtVal = document.createElement('p');
-        amtVal.className = 'text-xs font-black font-mono ' + (item.p ? 'text-emerald-400' : 'text-blue-400');
-        amtVal.textContent = '$' + parseFloat(item.m||0).toLocaleString('en-US',{minimumFractionDigits:2});
-        var status = document.createElement('p');
-        status.className = 'text-[9px] font-bold text-right mt-0.5 ' + (item.p ? 'text-emerald-600' : 'text-amber-500');
-        status.textContent = item.p ? '✔ pagado' : '○ pendiente';
-        amt.appendChild(amtVal);
-        amt.appendChild(status);
-
-        row.appendChild(dateBox);
-        row.appendChild(sep);
-        row.appendChild(info);
-        row.appendChild(amt);
+        dateBox.innerHTML = '<p class="text-base font-black text-white leading-none">' + dt.getDate() + '</p><p class="text-[9px] font-bold text-slate-500 uppercase">' + MESES[dt.getMonth()].slice(0,3) + '</p>';
+        var sep = document.createElement('div'); sep.className = 'w-px h-8 bg-slate-800 flex-shrink-0';
+        var info = document.createElement('div'); info.className = 'flex-1 min-w-0';
+        var name = document.createElement('p'); name.className = 'text-xs font-bold text-slate-200 truncate ' + (item.p ? 'line-through' : ''); name.textContent = item.c;
+        var meta = document.createElement('p'); meta.className = 'text-[9px] font-bold text-slate-600 uppercase tracking-wider mt-0.5'; meta.textContent = r.tab;
+        info.appendChild(name); info.appendChild(meta);
+        var amt = document.createElement('div'); amt.className = 'flex-shrink-0 text-right';
+        var amtVal = document.createElement('p'); amtVal.className = 'text-xs font-black font-mono ' + (item.p ? 'text-emerald-400' : 'text-blue-400'); amtVal.textContent = '$' + parseFloat(item.m||0).toLocaleString('en-US',{minimumFractionDigits:2});
+        var status = document.createElement('p'); status.className = 'text-[9px] font-bold text-right mt-0.5 ' + (item.p ? 'text-emerald-600' : 'text-amber-500'); status.textContent = item.p ? '✔ pagado' : '○ pendiente';
+        amt.appendChild(amtVal); amt.appendChild(status);
+        row.appendChild(dateBox); row.appendChild(sep); row.appendChild(info); row.appendChild(amt);
         listEl.appendChild(row);
     });
 }
@@ -2044,77 +1970,52 @@ function showDayDetail(dateStr, rows) {
     var detail = document.getElementById('cal-detail');
     var title  = document.getElementById('cal-detail-title');
     var body   = document.getElementById('cal-detail-body');
-
     var dt = new Date(dateStr + 'T12:00:00');
     title.innerText = DIAS[dt.getDay()] + ' ' + dt.getDate() + ' de ' + MESES[dt.getMonth()] + ' ' + dt.getFullYear();
-
     body.innerHTML = '';
-
-    if (!rows || rows.length === 0) {
-        body.innerHTML = '<p class="text-center text-slate-600 italic text-xs py-3">Sin transacciones este día</p>';
-        detail.classList.remove('hidden');
-        return;
-    }
-
+    if (!rows || rows.length === 0) { body.innerHTML = '<p class="text-center text-slate-600 italic text-xs py-3">Sin transacciones este día</p>'; detail.classList.remove('hidden'); return; }
     var dayTotal = 0, dayPaid = 0;
     rows.forEach(function(r) { var v = parseFloat(r.item.m||0); dayTotal += v; if (r.item.p) dayPaid += v; });
-
     var summary = document.createElement('div');
     summary.className = 'flex gap-4 mb-3 p-3 bg-slate-900 rounded-2xl border border-slate-800';
-    summary.innerHTML =
-        '<div class="text-center flex-1"><p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Total</p><p class="font-black text-sm text-white font-mono">$' + dayTotal.toLocaleString('en-US',{minimumFractionDigits:2}) + '</p></div>' +
-        '<div class="text-center flex-1 border-l border-slate-800"><p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Pagado</p><p class="font-black text-sm text-emerald-400 font-mono">$' + dayPaid.toLocaleString('en-US',{minimumFractionDigits:2}) + '</p></div>' +
-        '<div class="text-center flex-1 border-l border-slate-800"><p class="text-[9px] font-black text-blue-400 uppercase tracking-widest">Pendiente</p><p class="font-black text-sm text-blue-400 font-mono">$' + (dayTotal-dayPaid).toLocaleString('en-US',{minimumFractionDigits:2}) + '</p></div>';
+    summary.innerHTML = '<div class="text-center flex-1"><p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Total</p><p class="font-black text-sm text-white font-mono">$' + dayTotal.toLocaleString('en-US',{minimumFractionDigits:2}) + '</p></div><div class="text-center flex-1 border-l border-slate-800"><p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Pagado</p><p class="font-black text-sm text-emerald-400 font-mono">$' + dayPaid.toLocaleString('en-US',{minimumFractionDigits:2}) + '</p></div><div class="text-center flex-1 border-l border-slate-800"><p class="text-[9px] font-black text-blue-400 uppercase tracking-widest">Pendiente</p><p class="font-black text-sm text-blue-400 font-mono">$' + (dayTotal-dayPaid).toLocaleString('en-US',{minimumFractionDigits:2}) + '</p></div>';
     body.appendChild(summary);
-
     rows.forEach(function(r) {
         var item = r.item;
-        var row  = document.createElement('div');
+        var row = document.createElement('div');
         row.className = 'flex items-center justify-between p-3 rounded-2xl border border-slate-800 transition-all ' + (item.p ? 'bg-emerald-900/10 opacity-50' : 'bg-slate-800/50 hover:bg-slate-800');
-        var left = document.createElement('div');
-        left.className = 'flex items-center gap-2 min-w-0';
+        var left = document.createElement('div'); left.className = 'flex items-center gap-2 min-w-0';
         left.innerHTML = '<span class="text-sm flex-shrink-0">' + (item.p ? '✅' : '🔵') + '</span>';
-        var info2 = document.createElement('div');
-        info2.className = 'min-w-0';
-        info2.innerHTML = '<p class="font-bold text-xs text-slate-200 truncate ' + (item.p ? 'line-through' : '') + '">' + escVal(item.c) + '</p>' +
-            '<p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-0.5">' + escVal(r.tab) + '</p>';
+        var info2 = document.createElement('div'); info2.className = 'min-w-0';
+        info2.innerHTML = '<p class="font-bold text-xs text-slate-200 truncate ' + (item.p ? 'line-through' : '') + '">' + escVal(item.c) + '</p><p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-0.5">' + escVal(r.tab) + '</p>';
         left.appendChild(info2);
         var right = document.createElement('div');
         right.innerHTML = '<p class="font-black text-xs font-mono flex-shrink-0 ' + (item.p ? 'text-emerald-400' : 'text-blue-400') + '">$' + parseFloat(item.m||0).toLocaleString('en-US',{minimumFractionDigits:2}) + '</p>';
         row.appendChild(left); row.appendChild(right);
         body.appendChild(row);
     });
-
     detail.classList.remove('hidden');
     setTimeout(function() { detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
 }
 
-function closeDayDetail() {
-    calSelDay = null;
-    document.getElementById('cal-detail').classList.add('hidden');
-    renderCalendar();
-}
+function closeDayDetail() { calSelDay = null; document.getElementById('cal-detail').classList.add('hidden'); renderCalendar(); }
 
 // ─── NOTIFICACIONES ──────────────────────────────────────────────────────────
 function getNotifStyle(diffDays) {
-    if (diffDays <= 0)  return { color: '#ef4444', glow: 'rgba(239,68,68,0.4)',  label: 'HOY',         urgency: 7 };
+    if (diffDays <= 0)  return { color: '#ef4444', glow: 'rgba(239,68,68,0.4)',   label: 'HOY',          urgency: 7 };
     if (diffDays <= 3)  return { color: '#f87171', glow: 'rgba(248,113,113,0.35)', label: diffDays === 1 ? 'MAÑANA' : 'EN ' + diffDays + ' DÍAS', urgency: 6 };
     if (diffDays <= 7)  return { color: '#fb923c', glow: 'rgba(251,146,60,0.35)', label: 'EN ' + diffDays + ' DÍAS', urgency: 5 };
     if (diffDays <= 14) return { color: '#fbbf24', glow: 'rgba(251,191,36,0.3)',  label: 'EN ' + diffDays + ' DÍAS', urgency: 4 };
     if (diffDays <= 21) return { color: '#34d399', glow: 'rgba(52,211,153,0.3)',  label: 'EN ' + Math.ceil(diffDays/7) + ' SEMANAS', urgency: 3 };
-    if (diffDays <= 45) return { color: '#60a5fa', glow: 'rgba(96,165,250,0.3)',  label: 'EN ~1 MES',   urgency: 2 };
-    return                     { color: '#a78bfa', glow: 'rgba(167,139,250,0.25)', label: 'EN +2 MESES', urgency: 1 };
+    if (diffDays <= 45) return { color: '#60a5fa', glow: 'rgba(96,165,250,0.3)',  label: 'EN ~1 MES',    urgency: 2 };
+    return                     { color: '#a78bfa', glow: 'rgba(167,139,250,0.25)', label: 'EN +2 MESES',  urgency: 1 };
 }
 
 function buildNotifList() {
     if (!localData || !localData.db) return [];
-
-    var now      = new Date();
-    var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    var todayStr = getTodayStr();
     var todayMs  = new Date(todayStr + 'T00:00:00').getTime();
-
     var notifs = [];
-
     Object.keys(localData.db).forEach(function(tab) {
         (localData.db[tab] || []).forEach(function(item) {
             if (!item.f || item.p) return;
@@ -2124,43 +2025,32 @@ function buildNotifList() {
             notifs.push({ tab: tab, item: item, diffDays: diffDays, dateMs: itemMs });
         });
     });
-
     notifs.sort(function(a, b) { return a.dateMs - b.dateMs; });
     return notifs;
 }
 
 function renderNotifDrawer() {
-    var notifs   = buildNotifList();
-    var listEl   = document.getElementById('notif-list');
-    var emptyEl  = document.getElementById('notif-empty');
-    var badge    = document.getElementById('notif-bell-badge');
-    var totalEl  = document.getElementById('notif-total-count');
+    var notifs  = buildNotifList();
+    var listEl  = document.getElementById('notif-list');
+    var emptyEl = document.getElementById('notif-empty');
+    var badge   = document.getElementById('notif-bell-badge');
+    var totalEl = document.getElementById('notif-total-count');
 
     var urgent = notifs.filter(function(n) { return n.diffDays <= 3; }).length;
-    if (urgent > 0) {
-        badge.textContent = urgent;
-        badge.classList.remove('hidden');
-    } else {
-        badge.classList.add('hidden');
-    }
+    if (urgent > 0) { badge.textContent = urgent; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
     totalEl.textContent = notifs.length + ' pendientes';
 
     var children = Array.prototype.slice.call(listEl.children);
     children.forEach(function(c) { if (c.id !== 'notif-empty') c.remove(); });
 
-    if (notifs.length === 0) {
-        emptyEl.style.display = 'flex';
-        return;
-    }
+    if (notifs.length === 0) { emptyEl.style.display = 'flex'; return; }
     emptyEl.style.display = 'none';
 
     var lastUrgency = null;
     var sectionLabels = { 7: '🔴 Hoy', 6: '🔴 Próximos 3 días', 5: '🟠 Esta semana', 4: '🟡 Próximas 2 semanas', 3: '🟢 Próximas 3 semanas', 2: '🔵 Próximo mes', 1: '🟣 Más adelante' };
 
     notifs.forEach(function(n) {
-        var style    = getNotifStyle(n.diffDays);
-        var item     = n.item;
-
+        var style = getNotifStyle(n.diffDays), item = n.item;
         if (style.urgency !== lastUrgency) {
             lastUrgency = style.urgency;
             var sep = document.createElement('div');
@@ -2168,282 +2058,38 @@ function renderNotifDrawer() {
             sep.innerHTML = '<p class="text-[9px] font-black uppercase tracking-widest text-slate-500">' + (sectionLabels[style.urgency] || '') + '</p>';
             listEl.appendChild(sep);
         }
-
         var row = document.createElement('div');
         row.className = 'flex items-center gap-3 px-5 py-3.5 hover:bg-slate-800/40 transition-all cursor-default';
-
         var dot = document.createElement('div');
         dot.className = 'notif-dot flex-shrink-0';
-        dot.style.background = style.color;
-        dot.style.color      = style.color;
-        dot.style.boxShadow  = '0 0 8px ' + style.glow;
-
-        var info = document.createElement('div');
-        info.className = 'flex-1 min-w-0';
-
-        var nameRow = document.createElement('div');
-        nameRow.className = 'flex items-center gap-2';
-        var name = document.createElement('p');
-        name.className = 'text-sm font-bold text-slate-200 truncate';
-        name.textContent = item.c;
-        nameRow.appendChild(name);
-
+        dot.style.background = style.color; dot.style.color = style.color; dot.style.boxShadow = '0 0 8px ' + style.glow;
+        var info = document.createElement('div'); info.className = 'flex-1 min-w-0';
+        var nameRow = document.createElement('div'); nameRow.className = 'flex items-center gap-2';
+        var name = document.createElement('p'); name.className = 'text-sm font-bold text-slate-200 truncate'; name.textContent = item.c;
         var tabBadge = document.createElement('span');
         tabBadge.className = 'text-[8px] font-black uppercase tracking-widest bg-slate-800 text-slate-500 border border-slate-700 px-1.5 py-0.5 rounded flex-shrink-0';
         tabBadge.textContent = n.tab;
-        nameRow.appendChild(tabBadge);
-
-        var meta = document.createElement('div');
-        meta.className = 'flex items-center gap-2 mt-0.5';
-
-        var dateLabel = document.createElement('p');
-        dateLabel.className = 'text-[10px] font-bold font-mono';
-        dateLabel.style.color = style.color;
+        nameRow.appendChild(name); nameRow.appendChild(tabBadge);
+        var meta = document.createElement('div'); meta.className = 'flex items-center gap-2 mt-0.5';
+        var dateLabel = document.createElement('p'); dateLabel.className = 'text-[10px] font-bold font-mono'; dateLabel.style.color = style.color;
         var dt = new Date(item.f + 'T12:00:00');
         dateLabel.textContent = DIAS[dt.getDay()].slice(0,3) + ' ' + dt.getDate() + ' ' + MESES[dt.getMonth()].slice(0,3) + ' ' + dt.getFullYear();
-
-        var urgLabel = document.createElement('span');
-        urgLabel.className = 'text-[9px] font-black uppercase tracking-widest text-slate-600';
-        urgLabel.textContent = '· ' + style.label;
-
-        meta.appendChild(dateLabel);
-        meta.appendChild(urgLabel);
-
-        info.appendChild(nameRow);
-        info.appendChild(meta);
-
-        var amtWrap = document.createElement('div');
-        amtWrap.className = 'flex-shrink-0 text-right';
-        var amt = document.createElement('p');
-        amt.className = 'text-sm font-black font-mono text-white';
-        amt.textContent = '$' + parseFloat(item.m||0).toLocaleString('en-US',{minimumFractionDigits:2});
+        var urgLabel = document.createElement('span'); urgLabel.className = 'text-[9px] font-black uppercase tracking-widest text-slate-600'; urgLabel.textContent = '· ' + style.label;
+        meta.appendChild(dateLabel); meta.appendChild(urgLabel);
+        info.appendChild(nameRow); info.appendChild(meta);
+        var amtWrap = document.createElement('div'); amtWrap.className = 'flex-shrink-0 text-right';
+        var amt = document.createElement('p'); amt.className = 'text-sm font-black font-mono text-white'; amt.textContent = '$' + parseFloat(item.m||0).toLocaleString('en-US',{minimumFractionDigits:2});
         amtWrap.appendChild(amt);
-
-        row.appendChild(dot);
-        row.appendChild(info);
-        row.appendChild(amtWrap);
+        row.appendChild(dot); row.appendChild(info); row.appendChild(amtWrap);
         listEl.appendChild(row);
     });
 }
 
-function openNotifDrawer() {
-    renderNotifDrawer();
-    document.getElementById('notif-drawer').classList.add('open');
-    document.getElementById('notif-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
+function openNotifDrawer() { renderNotifDrawer(); document.getElementById('notif-drawer').classList.add('open'); document.getElementById('notif-overlay').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeNotifDrawer() { document.getElementById('notif-drawer').classList.remove('open'); document.getElementById('notif-overlay').classList.remove('open'); document.body.style.overflow = ''; }
 
-function closeNotifDrawer() {
-    document.getElementById('notif-drawer').classList.remove('open');
-    document.getElementById('notif-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-}
-
-// ─── FACTURA / INVOICE ────────────────────────────────────────────────────────
-var invoiceFile      = null;
-var invoiceBase64    = null;
-var invoiceMediaType = null;
-var invoiceTextContent = null;
-
-function handleInvoiceFile(input) {
-    var file = input.files[0];
-    if (!file) return;
-    invoiceFile = file;
-
-    var zone    = document.getElementById('invoice-zone');
-    var imgWrap = document.getElementById('invoice-img-wrap');
-    var pdfWrap = document.getElementById('invoice-pdf-wrap');
-    var attachBtn = document.getElementById('attach-btn');
-
-    zone.classList.remove('hidden');
-    clearInvoiceResult();
-    attachBtn.classList.add('has-file');
-
-    if (file.type.startsWith('image/')) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var dataUrl = e.target.result;
-            invoiceBase64 = dataUrl.split(',')[1];
-            invoiceMediaType = file.type;
-            document.getElementById('invoice-img-preview').src = dataUrl;
-            imgWrap.classList.remove('hidden');
-            pdfWrap.classList.add('hidden');
-        };
-        reader.readAsDataURL(file);
-    } else if (file.type === 'application/pdf') {
-        imgWrap.classList.add('hidden');
-        pdfWrap.classList.remove('hidden');
-        document.getElementById('invoice-pdf-name').textContent = file.name;
-        invoiceBase64    = null;
-        invoiceMediaType = 'application/pdf';
-        var reader2 = new FileReader();
-        reader2.onload = function(e) {
-            invoiceBase64 = e.target.result.split(',')[1];
-        };
-        reader2.readAsDataURL(file);
-    }
-
-    input.value = '';
-}
-
-function clearInvoiceFile() {
-    invoiceFile = invoiceBase64 = invoiceMediaType = invoiceTextContent = null;
-    document.getElementById('invoice-zone').classList.add('hidden');
-    document.getElementById('invoice-img-wrap').classList.add('hidden');
-    document.getElementById('invoice-pdf-wrap').classList.add('hidden');
-    document.getElementById('invoice-img-preview').src = '';
-    document.getElementById('attach-btn').classList.remove('has-file');
-    clearInvoiceResult();
-}
-
-function clearInvoiceResult() {
-    document.getElementById('invoice-result').classList.add('hidden');
-    document.getElementById('ext-concept').value = '';
-    document.getElementById('ext-date').value = '';
-    document.getElementById('ext-amount').value = '';
-}
-
-function analyzeInvoice() {
-    if (!invoiceBase64) { showToast('Espera a que termine de cargar el archivo', 'red'); return; }
-
-    setAILoading(true);
-    clearInvoiceResult();
-
-    var systemPrompt = 'Eres un asistente de extracción de datos de facturas y recibos. Tu tarea es analizar la imagen o documento proporcionado y extraer los datos clave. Responde ÚNICAMENTE con un objeto JSON válido con esta estructura exacta, sin texto adicional, sin bloques de código, sin explicaciones:\n{"concepto":"nombre del producto/servicio principal","fecha":"YYYY-MM-DD","monto":0.00}\n\nReglas:\n- concepto: máximo 50 caracteres, descriptivo y conciso\n- fecha: formato ISO YYYY-MM-DD. Si no hay fecha clara, usa la fecha de hoy\n- monto: número decimal, el total a pagar de la factura. Sin símbolo de moneda\n- Si hay múltiples artículos, usa el total general\n- Responde SOLO el JSON, nada más';
-
-    var messages;
-
-    if (invoiceMediaType && invoiceMediaType.startsWith('image/')) {
-        messages = [{
-            role: 'user',
-            content: [
-                {
-                    type: 'image_url',
-                    image_url: { url: 'data:' + invoiceMediaType + ';base64,' + invoiceBase64 }
-                },
-                {
-                    type: 'text',
-                    text: 'Analiza esta factura/recibo y extrae el concepto, fecha y monto total. Responde solo con el JSON indicado.'
-                }
-            ]
-        }];
-    } else {
-        messages = [{
-            role: 'user',
-            content: 'Tengo una factura en PDF llamada "' + (invoiceFile ? invoiceFile.name : 'factura.pdf') + '". Aunque no puedo enviarte el contenido directamente, necesito que me ayudes a registrar sus datos. Por favor responde con el JSON solicitado usando valores genéricos razonables que luego editaré.'
-        }];
-    }
-
-    var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
-    var fallbackModel = 'llama-3.1-8b-instant';
-
-    var visionModel   = 'meta-llama/llama-4-scout-17b-16e-instruct';
-    var fallbackModel = 'llama-3.1-8b-instant';
-
-    var tryModel = function(model, useVision) {
-        var body = {
-            model: model,
-            messages: useVision ? [{role:'system', content: systemPrompt}, messages[0]] : [{role:'system', content: systemPrompt}, {role:'user', content: messages[0].content[1] ? messages[0].content[1].text : messages[0].content}],
-            max_tokens: 256,
-            temperature: 0.1
-        };
-        if (useVision && invoiceMediaType && invoiceMediaType.startsWith('image/')) {
-            body.messages = [{role:'system', content: systemPrompt}, messages[0]];
-        }
-        // Use active provider endpoint and key
-        var activeProv = AI_PROVIDERS.find(function(p) { return p.id === userApiKeys.active; }) || AI_PROVIDERS[0];
-        var activeKey  = userApiKeys.active === 'custom' ? (userApiKeys.custom && userApiKeys.custom.key) : userApiKeys[userApiKeys.active];
-        if (!activeKey) activeKey = GROQ_KEY; // fallback to Groq default
-        var activeEndpoint = userApiKeys.active === 'custom' ? (userApiKeys.custom && userApiKeys.custom.endpoint) : activeProv.endpoint;
-        var activeModel    = userApiKeys.active === 'custom' ? (userApiKeys.custom && userApiKeys.custom.model) : activeProv.model;
-        // For vision (image invoices) force Groq since others may not support it the same way
-        var invoiceEndpoint = (body.messages && body.messages[0] && body.messages[0].content && Array.isArray(body.messages[0].content))
-            ? 'https://api.groq.com/openai/v1/chat/completions'
-            : activeEndpoint;
-        var invoiceKey = invoiceEndpoint.indexOf('groq') !== -1 ? (userApiKeys.groq || GROQ_KEY) : activeKey;
-
-        return fetch(invoiceEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + invoiceKey },
-            body: JSON.stringify(body)
-        }).then(function(r) {
-            if (!r.ok) return r.json().then(function(e) {
-                var msg = e.error ? e.error.message : ('HTTP ' + r.status);
-                if (r.status === 401) { setApiStatusDot(false); throw new Error('API Key inválida. Abre tu perfil → Claves IA para actualizarla.'); }
-                if (r.status === 429) { throw new Error('Límite alcanzado. Espera un momento.'); }
-                throw new Error(msg);
-            });
-            return r.json();
-        }).then(function(d) {
-            if (!d.choices || !d.choices[0]) throw new Error('Sin respuesta');
-            return d.choices[0].message.content;
-        });
-    };
-
-    tryModel(visionModel, true)
-        .catch(function() { return tryModel(fallbackModel, false); })
-        .then(function(raw) {
-            var json = raw.trim();
-            json = json.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
-            var data = JSON.parse(json);
-
-            setAILoading(false);
-
-            document.getElementById('ext-concept').value = data.concepto || '';
-            document.getElementById('ext-amount').value  = parseFloat(data.monto || 0).toFixed(2);
-
-            var fecha = data.fecha || '';
-            if (!fecha || fecha === 'YYYY-MM-DD') {
-                var now = new Date();
-                fecha = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-            }
-            document.getElementById('ext-date').value = fecha;
-
-            document.getElementById('invoice-result').classList.remove('hidden');
-
-            renderAIResponse('📄 **Factura analizada:**\n\n• Concepto: ' + (data.concepto||'—') + '\n• Fecha: ' + fecha + '\n• Monto: $' + parseFloat(data.monto||0).toFixed(2) + '\n\nRevisa y edita los datos extraídos si es necesario, luego presiona "Agregar al Dashboard".');
-        })
-        .catch(function(e) {
-            setAILoading(false);
-            var now = new Date();
-            var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-            document.getElementById('ext-concept').value = invoiceFile ? invoiceFile.name.replace(/\.[^/.]+$/, '') : 'Factura';
-            document.getElementById('ext-date').value    = todayStr;
-            document.getElementById('ext-amount').value  = '0.00';
-            document.getElementById('invoice-result').classList.remove('hidden');
-            renderAIResponse('⚠️ No pude leer el archivo automáticamente (' + (e.message||'') + '). Puedes completar los datos manualmente y agregar al dashboard.');
-        });
-}
-
-function addInvoiceToTab() {
-    if (!activeTab) { showToast('Selecciona una pestaña primero', 'red'); return; }
-
-    var concept = document.getElementById('ext-concept').value.trim();
-    var date    = document.getElementById('ext-date').value;
-    var amount  = parseFloat(document.getElementById('ext-amount').value || 0);
-
-    if (!concept) { showToast('Escribe un concepto', 'red'); return; }
-    if (!date)    { showToast('Selecciona una fecha', 'red'); return; }
-    if (amount <= 0) { showToast('El monto debe ser mayor a 0', 'red'); return; }
-
-    if (!localData.db[activeTab]) localData.db[activeTab] = [];
-    localData.db[activeTab].push({ c: concept, f: date, m: amount, p: false });
-
-    renderTable();
-    renderCalendar();
-    updateCharts();
-    saveCurrentData();
-
-    showToast('✅ Factura agregada a "' + activeTab + '"', 'blue');
-    clearInvoiceFile();
-    clearInvoiceResult();
-}
-
-document.getElementById('edit-profile-modal').addEventListener('click', function(e) {
-    if (e.target === this) toggleProfileOptions(false);
-});
+document.getElementById('edit-profile-modal').addEventListener('click', function(e) { if (e.target === this) toggleProfileOptions(false); });
 </script>
-
 </div>
 </body>
 </html>
